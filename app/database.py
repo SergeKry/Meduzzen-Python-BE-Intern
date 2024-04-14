@@ -16,7 +16,6 @@ redis_port = settings.redis_port
 
 SQLALCHEMY_DATABASE_URL = f'postgresql+asyncpg://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=True)
-Base = declarative_base()
 
 async_session = sessionmaker(engine, class_=AsyncSession,expire_on_commit=False)
 
