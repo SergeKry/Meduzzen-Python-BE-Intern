@@ -16,6 +16,8 @@ services:
     command: -p ${DB_PORT}
     expose:
       - ${DB_PORT}
+    ports:
+      - ${DB_PORT}:${DB_PORT}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:

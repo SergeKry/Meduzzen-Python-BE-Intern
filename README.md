@@ -7,3 +7,8 @@
 5. run 'docker compose build' in terminal
 6. run 'docker compose up' in terminal
 7. the app is available at 0.0.0.0:8000 by default
+
+## Running migrations:
+1. The app should be up and running with docker compose
+2. open terminal in container where app is running
+3. run command 'alembic upgrade head'
