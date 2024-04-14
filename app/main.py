@@ -4,7 +4,7 @@ from config import settings
 from routers.routers import router
 
 app = FastAPI()
-app.include_router(router)
+app.include_router(router, tags=['Healthcheck'])
 
 
 if __name__ == '__main__':

@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     db_password: str = Field(..., env='DB_PASSWORD')
     db_host: str = Field(..., env='DB_HOST')
     db_port: int = Field(..., env='DB_PORT')
+    redis_host: str = Field(..., env='REDIS_HOST')
+    redis_port: int = Field(..., env='REDIS_PORT')
 
 
 settings = Settings()
