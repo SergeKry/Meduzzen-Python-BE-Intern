@@ -16,6 +16,7 @@ class SignUpRequest(BaseModel):
     username: str
     password: str
     email: str
+    role: int
 
 
 class UserUpdateRequest(BaseModel):
