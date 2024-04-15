@@ -1,14 +1,24 @@
-from pydantic_settings import BaseSettings
-import os
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 from dotenv import load_dotenv
 
 load_dotenv()
 
-
 class Settings(BaseSettings):
-    uvicorn_host: str = os.environ.get('UVICONN_HOST', '0.0.0.0')
-    uvicorn_port: int = os.environ.get('UVICONN_PORT', 8000)
-    uvicorn_restart: bool = os.environ.get('UVICONN_RESTART', True)
+    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
+
+    UVICORN_HOST: str
+    UVICORN_PORT: int
+    UVICORN_RESTART: bool
+
+    DB_HOST: str
+    DB_PORT: int
+    DB_NAME: str
+    DB_USER: str
+    DB_PASSWORD: str
+
+    REDIS_HOST: str
+    REDIS_PORT: int
 
 
 settings = Settings()
