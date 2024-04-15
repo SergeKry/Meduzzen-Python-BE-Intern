@@ -4,17 +4,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from app.config import settings
 import redis.asyncio as redis
 
-
-db_name = settings.db_name
-db_user = settings.db_user
-db_password = settings.db_password
-db_host = settings.db_host
-db_port = settings.db_port
-
-redis_host = settings.redis_host
-redis_port = settings.redis_port
-
-SQLALCHEMY_DATABASE_URL = f'postgresql+asyncpg://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+SQLALCHEMY_DATABASE_URL = f'postgresql+asyncpg://{settings.db_user}:{settings.db_password}@{settings.db_host}:{settings.db_port}/{settings.db_name}'
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=True)
 Base = declarative_base()
 
@@ -28,7 +18,7 @@ async def get_session() -> AsyncSession:
 
 
 async def init_redis():
-    r = redis.Redis(host=redis_host, port=redis_port)
+    r = redis.Redis(host=settings.redis_host, port=settings.redis_port)
     print(f"Ping successful: {await r.ping()}")
     await r.aclose()
 

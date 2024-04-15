@@ -10,12 +10,12 @@ services:
       - .:/app
     depends_on:
       - postgres
+      - redis
   postgres:
     image: postgres:16.2-alpine3.19
     container_name: postgres_db
-    command: -p ${DB_PORT}
-    expose:
-      - ${DB_PORT}
+    ports:
+      - ${DB_PORT}:${DB_PORT}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
