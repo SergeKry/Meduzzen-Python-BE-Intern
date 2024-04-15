@@ -20,7 +20,6 @@ class SignUpRequest(BaseModel):
 
 
 class UserUpdateRequest(BaseModel):
-    id: int
     username: str
     password: str
     email: str

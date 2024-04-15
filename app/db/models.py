@@ -20,7 +20,7 @@ class User(BaseModel):
 
     username = Column(String(20), unique=True, nullable=False)
     email = Column(String(320), unique=True, nullable=False)
-    password = Column(String, nullable=False)
+    password = Column(String(127), nullable=False)
     role = Column(Integer, ForeignKey('roles.id'), nullable=False, default=1)
 
 
