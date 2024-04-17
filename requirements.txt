@@ -10,4 +10,4 @@ alembic==1.13.1
 asyncpg==0.29.0
 greenlet==3.0.3
 redis==5.0.3
-
+starlette~=0.37.2

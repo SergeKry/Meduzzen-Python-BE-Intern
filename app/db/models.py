@@ -11,8 +11,8 @@ class BaseModel(Base):
     __abstract__ = True
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    created_at = Column(DateTime, default=datetime.datetime.now(datetime.UTC))
-    updated_at = Column(DateTime, default=datetime.datetime.now(datetime.UTC))
+    created_at = Column(DateTime, default=datetime.datetime.utcnow())
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow())
 
 
 class User(BaseModel):

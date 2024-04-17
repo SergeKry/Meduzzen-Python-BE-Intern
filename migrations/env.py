@@ -15,11 +15,11 @@ from app.db.models import Base
 config = context.config
 
 section = config.config_ini_section
-config.set_section_option(section, "DB_HOST", str(settings.db_host))
-config.set_section_option(section, "DB_PORT", str(settings.db_port))
-config.set_section_option(section, "DB_NAME", str(settings.db_name))
-config.set_section_option(section, "DB_USER", str(settings.db_user))
-config.set_section_option(section, "DB_PASSWORD", str(settings.db_password))
+config.set_section_option(section, "DB_HOST", str(settings.DB_HOST))
+config.set_section_option(section, "DB_PORT", str(settings.DB_PORT))
+config.set_section_option(section, "DB_NAME", str(settings.DB_NAME))
+config.set_section_option(section, "DB_USER", str(settings.DB_USER))
+config.set_section_option(section, "DB_PASSWORD", str(settings.DB_PASSWORD))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

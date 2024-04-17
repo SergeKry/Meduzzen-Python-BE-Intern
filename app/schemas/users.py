@@ -1,3 +1,4 @@
+import datetime
 from typing import List
 from pydantic import BaseModel
 
@@ -14,8 +15,8 @@ class SignInRequest(BaseModel):
 
 class SignUpRequest(BaseModel):
     username: str
-    password: str
     email: str
+    password: str
     role: int
 
 
