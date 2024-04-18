@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from starlette import status
 
 from app.schemas import users as user_schema
@@ -31,7 +32,11 @@ async def add_user(user, session):
         user_dict = user.dict()
         hashed_password, salt = await utils.encrypt_password(user_dict.pop("password2"))
         user_dict.update({'password': hashed_password, 'salt': salt})
-        await db.create_user(user_dict, session)
+        try:
+            await db.create_user(user_dict, session)
+        except IntegrityError as err:
+            error_detail = str(err.args).split('DETAIL:')[-1].strip()[:-4]
+            raise HTTPException(status_code=500, detail=error_detail)
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
@@ -45,4 +50,10 @@ async def update_user(user_id, user, session):
         user_dict = user.dict()
         hashed_password, salt = await utils.encrypt_password(user_dict.pop("password2"))
         user_dict.update({'password': hashed_password, 'salt': salt})
-        await db.user_update(user_id, user_dict, session)
+        try:
+            await db.user_update(user_id, user_dict, session)
+        except IntegrityError as err:
+            error_detail = str(err.args).split('DETAIL:')[-1].strip()[:-4]
+            raise HTTPException(status_code=500, detail=error_detail)
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)

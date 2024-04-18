@@ -23,10 +23,10 @@ async def read_all_users(session: AsyncSession = Depends(get_session)) -> user_s
 
 @users_router.get('/{user_id}')
 async def read_user(user_id: int, session: AsyncSession = Depends(get_session)) -> user_schema.UserDetailResponse:
-    query_result = await db.get_user_by_id(user_id, session)
-    if not query_result:
+    user_query_result = await db.get_user_by_id(user_id, session)
+    if not user_query_result:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    result = await services.user_details(query_result)
+    result = await services.user_details(user_query_result)
     return result
 
 
