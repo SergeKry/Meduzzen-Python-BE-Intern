@@ -25,7 +25,7 @@ async def read_all_users(session: AsyncSession = Depends(get_session)) -> user_s
 async def read_user(user_id: int, session: AsyncSession = Depends(get_session)) -> user_schema.UserDetailResponse:
     user_query_result = await db.get_user_by_id(user_id, session)
     if not user_query_result:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
     result = await services.user_details(user_query_result)
     return result
 
@@ -36,7 +36,7 @@ async def update_user(user_id: int,
                       session: AsyncSession = Depends(get_session)):
     user = await db.get_user_by_id(user_id, session)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
     await services.update_user(user_id, request_body, session)
 
 
@@ -44,5 +44,5 @@ async def update_user(user_id: int,
 async def delete_user(user_id: int, session: AsyncSession = Depends(get_session)):
     user = await db.get_user_by_id(user_id, session)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
     await db.user_delete(user_id, session)
