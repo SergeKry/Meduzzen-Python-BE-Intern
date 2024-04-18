@@ -22,18 +22,12 @@ async def get_user_by_id(user_id, session):
 
 
 async def user_update(user_id, new_values, session):
-    user = await session.execute(select(User).where(User.id == user_id))
-    if user.first() is None:
-        raise HTTPException(status_code=404, detail="User not found")
     stmt = update(User).where(User.id == user_id).values(**new_values)
     await session.execute(stmt)
     await session.commit()
 
 
 async def user_delete(user_id, session):
-    user = await session.execute(select(User).where(User.id == user_id))
-    if user.first() is None:
-        raise HTTPException(status_code=404, detail="User not found")
     stmt = delete(User).where(User.id == user_id)
     await session.execute(stmt)
     await session.commit()
