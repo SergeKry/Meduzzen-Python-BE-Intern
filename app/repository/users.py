@@ -4,10 +4,9 @@ from app.db.models import User
 
 
 async def create_user(user, session):
-    new_user = User(**user.dict())
+    new_user = User(**user)
     session.add(new_user)
     await session.commit()
-    # return new_user
 
 
 async def get_all_users(session):
@@ -19,14 +18,14 @@ async def get_all_users(session):
 async def get_user_by_id(user_id, session):
     query = select(User).where(User.id == user_id)
     result = await session.execute(query)
-    return result.scalars().first()
+    return result.scalar()
 
 
-async def user_update(user_id, request_body, session):
+async def user_update(user_id, new_values, session):
     user = await session.execute(select(User).where(User.id == user_id))
     if user.first() is None:
         raise HTTPException(status_code=404, detail="User not found")
-    stmt = update(User).where(User.id == user_id).values(**request_body.dict())
+    stmt = update(User).where(User.id == user_id).values(**new_values)
     await session.execute(stmt)
     await session.commit()
 

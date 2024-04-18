@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import Column, Integer, DateTime, String, ForeignKey
+from sqlalchemy import Column, Integer, DateTime, String, ForeignKey, LargeBinary
 from sqlalchemy.orm import DeclarativeBase
 
 
@@ -20,7 +20,8 @@ class User(BaseModel):
 
     username = Column(String(20), unique=True, nullable=False)
     email = Column(String(320), unique=True, nullable=False)
-    password = Column(String(127), nullable=False)
+    password = Column(LargeBinary, nullable=False)
+    salt = Column(LargeBinary, nullable=False)
     role = Column(Integer, ForeignKey('roles.id'), nullable=False, default=1)
 
 
