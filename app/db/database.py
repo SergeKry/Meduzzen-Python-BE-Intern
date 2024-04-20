@@ -10,7 +10,6 @@ engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=True)
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
-# Dependency for the future
 async def get_session() -> AsyncSession:
     async with async_session() as session:
         yield session
@@ -18,7 +17,7 @@ async def get_session() -> AsyncSession:
 
 async def init_redis():
     r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
-    print(f"Ping successful: {await r.ping()}")
+    print(f"Redis ping successful: {await r.ping()}")
     await r.aclose()
 
 asyncio.run(init_redis())
