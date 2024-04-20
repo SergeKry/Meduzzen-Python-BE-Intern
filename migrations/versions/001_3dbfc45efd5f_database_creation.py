@@ -30,17 +30,17 @@ def upgrade() -> None:
     op.bulk_insert(roles,
                    [{
                         'role_name': 'admin',
-                        'id': 0,
+                        'id': 1,
                         'created_at': datetime.datetime.now(),
                         'updated_at': datetime.datetime.now()},
                     {
                         'role_name': 'owner',
-                        'id': 1,
+                        'id': 2,
                         'created_at': datetime.datetime.now(),
                         'updated_at': datetime.datetime.now()
                         },
                        {'role_name': 'user',
-                        'id': 2,
+                        'id': 3,
                         'created_at': datetime.datetime.now(),
                         'updated_at': datetime.datetime.now()}])
     op.create_table('users',
