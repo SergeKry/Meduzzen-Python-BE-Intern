@@ -28,11 +28,11 @@ async def read_user(user_id: int, session: AsyncSession = Depends(get_session)) 
     return user
 
 
-@users_router.put('/{user_id}', status_code=status.HTTP_200_OK)
+@users_router.patch('/{user_id}', status_code=status.HTTP_200_OK)
 async def update_user(user_id: int,
                       request_body: user_schema.UserUpdateRequest,
                       session: AsyncSession = Depends(get_session)):
-    user = await db.get_user_by_id(user_id, session)
+    user = await services.user_details(user_id, session)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
     await services.update_user(user_id, request_body, session)

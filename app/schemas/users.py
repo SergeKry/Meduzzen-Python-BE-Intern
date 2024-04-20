@@ -17,15 +17,15 @@ class SignUpRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=127)
     password2: str = Field(min_length=8, max_length=127)
-    role: int
+    role: int = Field(ge=1, le=3, default=2)
 
 
 class UserUpdateRequest(BaseModel):
-    username: str
-    password: str
-    password2: str
-    email: str
-    role: int
+    username: str = Field(min_length=3, max_length=20, default=None)
+    email: EmailStr = Field(default=None)
+    password: str = Field(min_length=8, max_length=127, default=None)
+    password2: str = Field(min_length=8, max_length=127, default=None)
+    role: int = Field(ge=1, le=3, default=None)
 
 
 class UserDetailResponse(BaseModel):

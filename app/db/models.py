@@ -22,7 +22,7 @@ class User(BaseModel):
     email = Column(String(320), unique=True, nullable=False)
     password = Column(LargeBinary, nullable=False)
     salt = Column(LargeBinary, nullable=False)
-    role = Column(Integer, ForeignKey('roles.id'), nullable=False, default=1)
+    role = Column(Integer, ForeignKey('roles.id'), nullable=False, default=2)
 
 
 class Role(BaseModel):
