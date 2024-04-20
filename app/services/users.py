@@ -20,9 +20,8 @@ async def get_all_users(session):
 async def add_user(user, session):
     user_dict = user.dict()
     password = user_dict['password'] == user_dict['password2']
-    email = utils.validate_email(user_dict['email'])
     role = user_dict['role'] in (0, 1, 2)
-    if password and email and role:
+    if password and role:
         user_dict = user.dict()
         hashed_password, salt = utils.encrypt_password(user_dict.pop("password2"))
         user_dict.update({'password': hashed_password, 'salt': salt})

@@ -12,3 +12,4 @@ greenlet==3.0.3
 redis==5.0.3
 starlette~=0.37.2
 bcrypt~=4.1.2
+email_validator==2.1.1
