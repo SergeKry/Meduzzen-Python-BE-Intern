@@ -20,10 +20,6 @@ class SignUpRequest(BaseModel):
     role: int = Field(ge=1, le=3, default=2)
 
 
-class ConfirmationResponse(BaseModel):
-    message: str
-
-
 class UserUpdateRequest(BaseModel):
     username: str = Field(min_length=3, max_length=20, default=None)
     email: EmailStr = Field(default=None)
@@ -41,3 +37,7 @@ class UserDetailResponse(BaseModel):
 
 class UserListResponse(BaseModel):
     users: List[UserDetailResponse]
+
+
+class ConfirmationResponse(BaseModel):
+    message: str

@@ -3,6 +3,7 @@ from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.utils import utils
 from app.repository.users import UserRepository
+from app.db import models as db_model
 
 
 class UserService:
@@ -10,15 +11,16 @@ class UserService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def user_details(self, user_id: int):
+    async def user_details(self, user_id: int) -> db_model.User:
         user = await UserRepository(self.session).get_one_by_id(user_id)
         return user
 
     async def get_all_users(self):
         users = await UserRepository(self.session).get_all()
+        print(type(users))
         return {'users': users}
 
-    async def add_user(self, user):
+    async def add_user(self, user) -> None:
         user_dict = user.dict()
         password = user_dict['password'] == user_dict['password2']
         if not password:
@@ -32,7 +34,7 @@ class UserService:
         user_dict.update({'password': hashed_password, 'salt': salt})
         await new_user.create_one(user_dict)
 
-    async def update_user(self, user_id, new_values):
+    async def update_user(self, user_id, new_values) -> None:
         new_values_dict = new_values.dict(exclude_unset=True)
         password = new_values_dict.get('password') == new_values_dict.get('password2')
         if not password:
@@ -47,7 +49,7 @@ class UserService:
             new_values_dict.update({'password': hashed_password, 'salt': salt})
         await user.update_one(user_id, new_values_dict)
 
-    async def delete_user(self, user_id):
+    async def delete_user(self, user_id) -> None:
         user = await UserRepository(self.session).get_one_by_id(user_id)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
