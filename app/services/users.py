@@ -4,23 +4,17 @@ from starlette import status
 
 from app.schemas import users as user_schema
 from app.utils import utils
-from app.repository import users as db
+from app.repository.users import UserRepository
 
 
-async def user_details(query_result):
-    user = user_schema.UserDetailResponse(id=query_result.id,
-                                          username=query_result.username,
-                                          email=query_result.email,
-                                          role=query_result.role)
+async def user_details(user_id: int, session):
+    user = await UserRepository(session).get_one_by_id(user_id)
     return user
 
 
-async def get_all_users(query_result):
-    result = []
-    for item in query_result:
-        user = await user_details(item)
-        result.append(user)
-    return {'users': result}
+async def get_all_users(session):
+    users = await UserRepository(session).get_all()
+    return {'users': users}
 
 
 async def add_user(user, session):
@@ -30,10 +24,11 @@ async def add_user(user, session):
     role = user_dict['role'] in (0, 1, 2)
     if password and email and role:
         user_dict = user.dict()
-        hashed_password, salt = await utils.encrypt_password(user_dict.pop("password2"))
+        hashed_password, salt = utils.encrypt_password(user_dict.pop("password2"))
         user_dict.update({'password': hashed_password, 'salt': salt})
         try:
-            await db.create_user(user_dict, session)
+            user = UserRepository(session)
+            await user.create_one(user_dict)
         except IntegrityError as err:
             error_detail = str(err.args).split('DETAIL:')[-1].strip()[:-4]
             raise HTTPException(status_code=500, detail=error_detail)
@@ -57,3 +52,10 @@ async def update_user(user_id, user, session):
             raise HTTPException(status_code=500, detail=error_detail)
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+
+async def delete_user(user_id, session):
+    user = await UserRepository(session).get_one_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
+    await UserRepository(session).delete_one(user_id)

@@ -8,7 +8,7 @@ def validate_email(email):
         return True
 
 
-async def encrypt_password(password):
+def encrypt_password(password):
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
     return hashed_password, salt
