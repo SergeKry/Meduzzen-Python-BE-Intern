@@ -1,8 +1,8 @@
-from fastapi import APIRouter
+from app.routers.users import *
 
-router = APIRouter()
+health_router = APIRouter()
 
 
-@router.get("/")
+@health_router.get("/")
 async def healthcheck():
     return {"status_code": "200", "detail": "ok", "result": "working"}
