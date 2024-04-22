@@ -11,8 +11,8 @@ class BaseModel(Base):
     __abstract__ = True
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow())
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow())
+    created_at = Column(DateTime, default=datetime.datetime.utcnow(), nullable=False)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow(), nullable=False)
 
 
 class User(BaseModel):
@@ -20,8 +20,7 @@ class User(BaseModel):
 
     username = Column(String(20), unique=True, nullable=False)
     email = Column(String(320), unique=True, nullable=False)
-    password = Column(LargeBinary, nullable=False)
-    salt = Column(LargeBinary, nullable=False)
+    password = Column(String(100), nullable=False)
     role = Column(Integer, ForeignKey('roles.id'), nullable=False, default=2)
 
 
