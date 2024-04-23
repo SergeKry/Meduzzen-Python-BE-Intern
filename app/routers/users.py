@@ -1,9 +1,12 @@
+from datetime import timedelta
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from app.db.database import get_session
 from app.schemas import users as user_schema
 from app.services.users import UserService
+from app.utils import utils
 
 users_router = APIRouter(prefix='/users', tags=['Users'])
 
@@ -46,9 +49,11 @@ async def delete_user(user_id: int, session: AsyncSession = Depends(get_session)
     return user_schema.ConfirmationResponse(message='User deleted')
 
 
-@users_router.post('/auth')
+@users_router.post('/auth', response_model=user_schema.Token)
 async def authenticate_user(login_data: user_schema.SignInRequest, session: AsyncSession = Depends(get_session)):
-    user = await UserService(session).user_authenticate(login_data.username, login_data.password)
-    if not user:
-        return "Failed Authentication"
-    return "Successful Authentication"
+    access_token = await UserService(session).user_authenticate(login_data.username, login_data.password)
+    if not access_token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Authentication failed')
+    return {'access_token': access_token}
+
+

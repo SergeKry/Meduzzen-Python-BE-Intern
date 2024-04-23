@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from fastapi import HTTPException
 from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -50,7 +52,8 @@ class UserService:
     async def user_authenticate(self, username, password):
         user = await self.user_repository.get_one_by_username(username)
         if not user:
-            return False
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
         if not utils.validate_password(password, user.password):
-            return False
-        return True
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Incorrect password')
+        token = utils.create_access_token(user.username, user.email, user.id, timedelta(minutes=30))
+        return token
