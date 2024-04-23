@@ -8,6 +8,6 @@ def encrypt_password(password):
     return string_hashed
 
 
-def check_password(password, hashed):
-    hashed_input_password = bcrypt.checkpw(password.encode('utf-8'), hashed)
+def validate_password(password, hashed):
+    hashed_input_password = bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
     return hashed_input_password

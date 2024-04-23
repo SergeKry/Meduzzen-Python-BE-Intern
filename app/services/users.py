@@ -46,3 +46,11 @@ class UserService:
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
         await self.user_repository.delete_one(user_id)
+
+    async def user_authenticate(self, username, password):
+        user = await self.user_repository.get_one_by_username(username)
+        if not user:
+            return False
+        if not utils.validate_password(password, user.password):
+            return False
+        return True

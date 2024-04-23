@@ -44,3 +44,11 @@ async def update_user(user_id: int,
 async def delete_user(user_id: int, session: AsyncSession = Depends(get_session)) -> user_schema.ConfirmationResponse:
     await UserService(session).delete_user(user_id)
     return user_schema.ConfirmationResponse(message='User deleted')
+
+
+@users_router.post('/auth')
+async def authenticate_user(login_data: user_schema.SignInRequest, session: AsyncSession = Depends(get_session)):
+    user = await UserService(session).user_authenticate(login_data.username, login_data.password)
+    if not user:
+        return "Failed Authentication"
+    return "Successful Authentication"
