@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import bcrypt
 from jose import jwt
+
 from app.config import settings
 
 
@@ -17,7 +18,12 @@ def validate_password(password, hashed):
 
 
 def create_access_token(username: str, email: str, user_id: int, expires_delta: timedelta):
-    encode = {'sub': username, 'email': email, 'id': user_id}
+    encode = {'sub': username, 'email': email, 'user_id': user_id}
     expired = datetime.utcnow() + expires_delta
     encode.update({'exp': expired})
     return jwt.encode(encode, settings.JWT_ACCESS_SECRET, algorithm=settings.JWT_ALGORITHM)
+
+
+def decode_access_token(token):
+    decoded = jwt.decode(token, settings.JWT_ACCESS_SECRET, algorithms=[settings.JWT_ALGORITHM])
+    return decoded

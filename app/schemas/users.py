@@ -6,6 +6,7 @@ from pydantic_core.core_schema import FieldValidationInfo
 class User(BaseModel):
     id: int
     username: str
+    email: str
 
 
 class SignInRequest(BaseModel):
@@ -58,3 +59,4 @@ class ConfirmationResponse(BaseModel):
 
 class Token(BaseModel):
     access_token: str
+    token_type: str

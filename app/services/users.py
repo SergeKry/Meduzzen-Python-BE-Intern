@@ -1,10 +1,14 @@
-from datetime import timedelta
-
-from fastapi import HTTPException
+from datetime import timedelta, datetime
+from fastapi import HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError
 from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.utils import utils
 from app.repository.users import UserRepository
+
+
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl='/users/auth', scheme_name='JWT')
 
 
 class UserService:
@@ -57,3 +61,20 @@ class UserService:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Incorrect password')
         token = utils.create_access_token(user.username, user.email, user.id, timedelta(minutes=30))
         return token
+
+
+async def get_current_user(token: str = Depends(oauth2_bearer)):
+    try:
+        payload = utils.decode_access_token(token)
+        username: str = payload.get('sub')
+        email: str = payload.get('email')
+        user_id: int = payload.get('user_id')
+        if username is None or email is None or user_id is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid credentials')
+        if datetime.fromtimestamp(payload.get('exp')) < datetime.now():
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Token expired')
+        return {'username': username, 'email': email, 'user_id': user_id}
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token')
+
+
