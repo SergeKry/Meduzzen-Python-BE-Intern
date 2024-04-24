@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from app.db.database import get_session
 from app.schemas import users as user_schema
-from app.services.users import UserService, get_current_user
+from app.services.users import UserService
 
 users_router = APIRouter(prefix='/users', tags=['Users'])
 
@@ -21,22 +21,6 @@ async def add_user(user: user_schema.SignUpRequest,
 async def read_all_users(session: AsyncSession = Depends(get_session)) -> user_schema.UserListResponse:
     all_users = await UserService(session).get_all_users()
     return all_users
-
-
-@users_router.post('/auth', response_model=user_schema.Token)
-async def authenticate_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-                            session: AsyncSession = Depends(get_session)):
-    access_token = await UserService(session).user_authenticate(form_data.username, form_data.password)
-    if not access_token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Authentication failed')
-    return {'access_token': access_token, 'token_type': 'bearer'}
-
-
-@users_router.get('/me', response_model=user_schema.UserDetailResponse)
-async def get_me(user_data: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
-    user_id = user_data['user_id']
-    user = await UserService(session).user_details(user_id)
-    return user
 
 
 @users_router.get('/{user_id}')
@@ -62,5 +46,3 @@ async def update_user(user_id: int,
 async def delete_user(user_id: int, session: AsyncSession = Depends(get_session)) -> user_schema.ConfirmationResponse:
     await UserService(session).delete_user(user_id)
     return user_schema.ConfirmationResponse(message='User deleted')
-
-
