@@ -6,6 +6,7 @@ from fastapi import HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from app.repository.users import UserRepository
+from app.schemas import users as users_schema
 
 token_auth_scheme = HTTPBearer()
 
@@ -15,19 +16,20 @@ class AuthService:
         self.session = session
 
     async def user_authenticate(self, username, password):
-        user = await UserRepository(self.session).get_one_by_username(username)
-        if not user:
+        db_user = await UserRepository(self.session).get_one_by_username(username)
+        if not db_user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
-        if not validate_password(password, user.password):
+        if not validate_password(password, db_user.password):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Incorrect password')
-        token = create_access_token(user.username, user.email, user.id)
+        user = users_schema.User.from_orm(db_user)
+        token = create_access_token(user)
         return token
 
     @staticmethod
     async def get_current_user(token: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
         try:
             payload = decode_access_token(token.credentials)
-            username: str = payload.get('sub')[:20]
+            username: str = payload.get('sub')
             email: str = payload.get('email')
             if username is None or email is None:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid credentials')

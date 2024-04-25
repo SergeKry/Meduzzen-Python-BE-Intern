@@ -6,16 +6,20 @@ from pydantic_core.core_schema import FieldValidationInfo
 class User(BaseModel):
     id: int
     username: str
-    email: str
+    email: EmailStr
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
 
 
 class SignInRequest(BaseModel):
-    username: str = Field(min_length=3, max_length=20)
+    username: str = Field(min_length=3, max_length=100)
     password: str = Field(min_length=8, max_length=127)
 
 
 class SignUpRequest(BaseModel):
-    username: str = Field(min_length=3, max_length=20)
+    username: str = Field(min_length=3, max_length=100)
     email: EmailStr
     password: str = Field(min_length=8, max_length=127)
     password2: str = Field(min_length=8, max_length=127)
@@ -29,7 +33,7 @@ class SignUpRequest(BaseModel):
 
 
 class UserUpdateRequest(BaseModel):
-    username: str = Field(min_length=3, max_length=20, default=None)
+    username: str = Field(min_length=3, max_length=100, default=None)
     password: str = Field(min_length=8, max_length=127, default=None)
     password2: str = Field(min_length=8, max_length=127, default=None)
     role: int = Field(ge=1, le=3, default=None)
@@ -46,6 +50,10 @@ class UserDetailResponse(BaseModel):
     username: str
     email: str
     role: int
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
 
 
 class UserListResponse(BaseModel):

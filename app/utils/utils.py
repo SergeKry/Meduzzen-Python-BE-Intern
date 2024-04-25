@@ -4,6 +4,7 @@ import bcrypt
 from jose import jwt
 import random
 from app.config import settings
+from app.schemas import users as users_schema
 
 
 def encrypt_password(password):
@@ -18,11 +19,11 @@ def validate_password(password, hashed):
     return hashed_input_password
 
 
-def create_access_token(username: str, email: str, user_id: int):
-    encode = {'sub': username, 'email': email, 'user_id': user_id, 'aud': settings.JWT_AUD}
+def create_access_token(user: users_schema.User):
+    payload = {'sub': user.username, 'email': user.email, 'user_id': user.id, 'aud': settings.JWT_AUD}
     expired = datetime.utcnow() + timedelta(minutes=settings.JWT_ACCESS_EXPIRATION)
-    encode.update({'exp': expired})
-    return jwt.encode(encode, settings.JWT_ACCESS_SECRET, algorithm=settings.JWT_ALGORITHM)
+    payload.update({'exp': expired})
+    return jwt.encode(payload, settings.JWT_ACCESS_SECRET, algorithm=settings.JWT_ALGORITHM)
 
 
 def decode_access_token(token):

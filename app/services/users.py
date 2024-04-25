@@ -34,7 +34,7 @@ class UserService:
         new_user = await self.user_repository.create_one(user_dict)
         return new_user
 
-    async def add_user_auth0(self, user: dict):
+    async def create_user_from_auth0(self, user: dict):
         hashed_random_password = utils.generate_random_password()
         user.update({'password': hashed_random_password})
         new_user = await self.user_repository.create_one(user)
