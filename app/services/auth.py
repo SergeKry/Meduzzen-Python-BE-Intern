@@ -1,5 +1,5 @@
-from datetime import timedelta, datetime
-from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorizationCredentials
+from datetime import datetime
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError
 from app.utils.utils import create_access_token, validate_password, decode_access_token
 from fastapi import HTTPException, Depends
@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from app.repository.users import UserRepository
 
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl='/auth', scheme_name='JWT')
 token_auth_scheme = HTTPBearer()
 
 
