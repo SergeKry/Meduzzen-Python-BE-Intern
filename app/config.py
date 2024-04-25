@@ -22,6 +22,8 @@ class Settings(BaseSettings):
 
     JWT_ALGORITHM: str
     JWT_ACCESS_SECRET: str
+    JWT_ACCESS_EXPIRATION: int
+    JWT_AUD: str
 
 
 settings = Settings()
