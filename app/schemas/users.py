@@ -30,7 +30,6 @@ class SignUpRequest(BaseModel):
 
 class UserUpdateRequest(BaseModel):
     username: str = Field(min_length=3, max_length=20, default=None)
-    email: EmailStr = Field(default=None)
     password: str = Field(min_length=8, max_length=127, default=None)
     password2: str = Field(min_length=8, max_length=127, default=None)
     role: int = Field(ge=1, le=3, default=None)
