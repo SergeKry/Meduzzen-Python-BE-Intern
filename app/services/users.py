@@ -48,8 +48,6 @@ class UserService:
         new_values_dict = new_values.dict(exclude_unset=True)
         if await self.user_repository.get_one_by_username(new_values_dict.get('username')):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Username already exists')
-        if await self.user_repository.get_one_by_email(new_values_dict.get('email')):
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Email already exists')
         if new_values_dict.get('password'):
             hashed_password = utils.encrypt_password(new_values_dict.pop("password2"))
             new_values_dict.update({'password': hashed_password})
