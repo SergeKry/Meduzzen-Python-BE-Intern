@@ -29,12 +29,13 @@ class AuthService:
     async def get_current_user(token: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
         try:
             payload = decode_access_token(token.credentials)
-            username: str = payload.get('sub')
-            email: str = payload.get('email')
-            if username is None or email is None:
+            username = payload.get('username')
+            email = payload.get('email')
+            user_id = payload.get('sub')
+            if not username or not email:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid credentials')
             if datetime.fromtimestamp(payload.get('exp')) < datetime.now():
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Token expired')
-            return {'username': username, 'email': email}
-        except JWTError:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token')
+            return users_schema.User(id=user_id, email=email, username=username)
+        except JWTError as err:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(err))

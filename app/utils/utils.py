@@ -20,7 +20,7 @@ def validate_password(password, hashed):
 
 
 def create_access_token(user: users_schema.User):
-    payload = {'sub': user.username, 'email': user.email, 'user_id': user.id, 'aud': settings.JWT_AUD}
+    payload = {'sub': str(user.id), 'email': user.email, 'username': user.username, 'aud': settings.JWT_AUD}
     expired = datetime.utcnow() + timedelta(minutes=settings.JWT_ACCESS_EXPIRATION)
     payload.update({'exp': expired})
     return jwt.encode(payload, settings.JWT_ACCESS_SECRET, algorithm=settings.JWT_ALGORITHM)

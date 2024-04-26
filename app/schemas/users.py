@@ -1,11 +1,11 @@
 from datetime import datetime
-from typing import List
+from typing import List, Union
 from pydantic import BaseModel, Field, EmailStr, field_validator
 from pydantic_core.core_schema import FieldValidationInfo
 
 
 class User(BaseModel):
-    id: int
+    id: Union[int, str]
     username: str
     email: EmailStr
 

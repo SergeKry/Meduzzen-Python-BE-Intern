@@ -21,9 +21,9 @@ async def authenticate_user(form_data: Annotated[OAuth2PasswordRequestForm, Depe
 
 
 @auth_router.get('/me', response_model=user_schema.UserDetailResponse)
-async def get_me(user_data: dict = Depends(AuthService().get_current_user),
+async def get_me(current_user: user_schema.User = Depends(AuthService().get_current_user),
                  session: AsyncSession = Depends(get_session)):
-    user = await UserService(session).user_details_by_email(user_data['email'])
+    user = await UserService(session).user_details_by_email(current_user.email)
     if not user:
-        user = await UserService(session).create_user_from_auth0(user_data)
+        user = await UserService(session).create_user_from_auth0(current_user)
     return user
