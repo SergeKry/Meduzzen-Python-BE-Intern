@@ -22,5 +22,12 @@ async def get_all_companies(session: db_dependency, user: user_dependency) -> sc
 
 @company_router.get("/{company_id}")
 async def get_company(company_id: int, session: db_dependency, user: user_dependency) -> schema.CompanyDetails:
-    company = await Service(session, user).company_details_by_id(company_id)  # need to create this method in service and repository
+    company = await Service(session, user).company_details_by_id(company_id)
     return company
+
+
+@company_router.patch("/{company_id}")
+async def update_company(company_id: int, request_body: schema.CompanyUpdateRequest,
+                         session: db_dependency, user: user_dependency):
+    await Service(session, user).update_company(company_id, request_body)
+    return await Service(session, user).company_details_by_id(company_id)

@@ -25,6 +25,11 @@ class CompanyCreateRequest(BaseModel):
     details: str = Field(max_length=300)
 
 
+class CompanyUpdateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=100, default=None)
+    details: str = Field(max_length=300, default=None)
+
+
 class CompanyCreateResponse(BaseModel):
     id: int
     name: str
@@ -33,5 +38,3 @@ class CompanyCreateResponse(BaseModel):
     class Config:
         orm_mode = True
         from_attributes = True
-
-

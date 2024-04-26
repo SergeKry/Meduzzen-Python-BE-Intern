@@ -44,7 +44,7 @@ class UserService:
         new_user = await self.user_repository.create_one(user_dict)
         return new_user
 
-    async def update_user(self, user_id, new_values):
+    async def update_user(self, user_id, new_values) -> None:
         new_values_dict = new_values.dict(exclude_unset=True)
         if await self.user_repository.get_one_by_username(new_values_dict.get('username')):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Username already exists')

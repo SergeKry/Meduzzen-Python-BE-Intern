@@ -20,6 +20,11 @@ class CompanyRepository:
         await self.session.commit()
         return new_company
 
+    async def update(self, company_id, request_body: dict) -> None:
+        stmt = update(self.model).where(self.model.id == company_id).values(**request_body)
+        await self.session.execute(stmt)
+        await self.session.commit()
+
     @staticmethod
     async def unpack_company_details(result) -> dict:
         if result:
@@ -46,7 +51,7 @@ class CompanyRepository:
         return result
 
     async def get_all(self) -> List[dict]:
-        query = select(self.model,db_model.User).join(db_model.User, self.model.owner_id == db_model.User.id)
+        query = select(self.model, db_model.User).join(db_model.User, self.model.owner_id == db_model.User.id)
         query_result = await self.session.execute(query)
         result = [await self.unpack_company_details(row) for row in query_result.all()]
         return result

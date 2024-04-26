@@ -20,6 +20,15 @@ class CompanyService:
         new_company = await self.repository.create(company_details)
         return company_schema.CompanyCreateResponse.from_orm(new_company)
 
+    async def update_company(self, company_id, request_body) -> None:
+        company = await self.repository.get_one_by_id(company_id)
+        if not company:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Company not found')
+        if company['owner'] != self.user.username:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Don't have permission to update company")
+        new_values_dict = request_body.dict(exclude_unset=True)
+        await self.repository.update(company_id, new_values_dict)
+
     async def get_all_companies(self) -> company_schema.CompanyListResponse:
         companies = await self.repository.get_all()
         return company_schema.CompanyListResponse(companies=companies)
