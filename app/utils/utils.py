@@ -27,7 +27,8 @@ def create_access_token(user: users_schema.User):
 
 
 def decode_access_token(token):
-    decoded = jwt.decode(token, settings.JWT_ACCESS_SECRET, audience=settings.JWT_AUD, algorithms=[settings.JWT_ALGORITHM])
+    decoded = jwt.decode(token, settings.JWT_ACCESS_SECRET, audience=settings.JWT_AUD,
+                         algorithms=[settings.JWT_ALGORITHM])
     return decoded
 
 
@@ -35,5 +36,3 @@ def generate_random_password():
     string_pass = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
     hashed_password = encrypt_password(string_pass)
     return hashed_password
-
-
