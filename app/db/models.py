@@ -28,3 +28,11 @@ class Role(BaseModel):
     __tablename__ = 'roles'
 
     role_name = Column(String, unique=True, nullable=False)
+
+
+class Company(BaseModel):
+    __tablename__ = 'companies'
+
+    name = Column(String(100), nullable=False)
+    details = Column(String(300))
+    owner = Column(Integer, ForeignKey('users.id'), nullable=False)
