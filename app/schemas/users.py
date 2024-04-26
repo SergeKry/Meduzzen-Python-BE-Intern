@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 from pydantic import BaseModel, Field, EmailStr, field_validator
 from pydantic_core.core_schema import FieldValidationInfo
@@ -36,7 +37,6 @@ class UserUpdateRequest(BaseModel):
     username: str = Field(min_length=3, max_length=100, default=None)
     password: str = Field(min_length=8, max_length=127, default=None)
     password2: str = Field(min_length=8, max_length=127, default=None)
-    role: int = Field(ge=1, le=3, default=None)
 
     @field_validator('password2')
     def passwords_match(cls, v, info: FieldValidationInfo):
@@ -48,8 +48,9 @@ class UserUpdateRequest(BaseModel):
 class UserDetailResponse(BaseModel):
     id: int
     username: str
-    email: str
+    email: EmailStr
     role: int
+    created_at: datetime
 
     class Config:
         orm_mode = True
