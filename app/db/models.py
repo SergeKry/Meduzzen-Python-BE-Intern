@@ -1,6 +1,6 @@
 import datetime
 from sqlalchemy import Column, Integer, DateTime, String, ForeignKey, LargeBinary
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, relationship
 
 
 class Base(DeclarativeBase):
@@ -35,4 +35,5 @@ class Company(BaseModel):
 
     name = Column(String(100), nullable=False)
     details = Column(String(300))
-    owner = Column(Integer, ForeignKey('users.id'), nullable=False)
+    owner_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    owner = relationship("User")

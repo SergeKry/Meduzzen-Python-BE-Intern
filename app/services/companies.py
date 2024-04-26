@@ -14,8 +14,12 @@ class CompanyService:
         self.user = user
         self.repository = CompanyRepository(session, user)
 
-    async def create_company(self, company_details: company_schema.CompanyCreateRequest):
+    async def create_company(self, company_details: company_schema.CompanyCreateRequest) -> company_schema.CompanyCreateResponse:
         if await self.repository.get_one_by_name(company_details.name):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Such company already exists')
         new_company = await self.repository.create(company_details)
         return company_schema.CompanyCreateResponse.from_orm(new_company)
+
+    async def get_all_companies(self) -> company_schema.CompanyListResponse:
+        companies = await self.repository.get_all()
+        return company_schema.CompanyListResponse(companies=companies)

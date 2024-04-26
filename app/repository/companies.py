@@ -1,3 +1,5 @@
+from typing import Sequence, List
+
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas import users as user_schema
@@ -13,12 +15,29 @@ class CompanyRepository:
         self.model = db_model.Company
 
     async def create(self, company_details: company_schema.CompanyCreateRequest) -> db_model.Company:
-        new_company = self.model(**company_details.dict(), owner=self.user.id)
+        new_company = self.model(**company_details.dict(), owner_id=self.user.id)
         self.session.add(new_company)
         await self.session.commit()
         return new_company
+
+    @staticmethod
+    async def unpack_company_details(result) -> dict:
+        company = result[0]
+        user = result[1]
+        filtered_result = {'id': company.id,
+                           'name': company.name,
+                           'details': company.details,
+                           'owner': user.username,
+                           'created_at': company.created_at}
+        return filtered_result
 
     async def get_one_by_name(self, company_name) -> db_model.Company:
         query = select(self.model).where(self.model.name == company_name)
         result = await self.session.execute(query)
         return result.scalar()
+
+    async def get_all(self) -> List[dict]:
+        query = select(self.model,db_model.User).join(db_model.User, self.model.owner_id == db_model.User.id)
+        query_result = await self.session.execute(query)
+        result = [await self.unpack_company_details(row) for row in query_result.all()]
+        return result

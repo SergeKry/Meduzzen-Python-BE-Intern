@@ -1,8 +1,8 @@
-"""Added companies table
+"""companies table
 
-Revision ID: dcd8fad94a38
+Revision ID: f9d9a7ef23e2
 Revises: f31305f1b05a
-Create Date: 2024-04-26 16:55:12.819299
+Create Date: 2024-04-26 19:16:29.003735
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'dcd8fad94a38'
+revision: str = 'f9d9a7ef23e2'
 down_revision: Union[str, None] = 'f31305f1b05a'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,11 +23,11 @@ def upgrade() -> None:
     op.create_table('companies',
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('details', sa.String(length=300), nullable=True),
-    sa.Column('owner', sa.Integer(), nullable=False),
+    sa.Column('owner_id', sa.Integer(), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['owner'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['owner_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from starlette import status
 
 from app.schemas import companies as schema
@@ -12,3 +12,17 @@ company_router = APIRouter(prefix="/company", tags=["Companies"])
 async def create_company(company_details: schema.CompanyCreateRequest, session: db_dependency, user: user_dependency):
     new_company = await Service(session, user).create_company(company_details)
     return new_company
+
+
+@company_router.get("/")
+async def get_all_companies(session: db_dependency, user: user_dependency) -> schema.CompanyListResponse:
+    all_companies = await Service(session, user).get_all_companies()
+    return all_companies
+
+
+@company_router.get("/{company_id}")
+async def get_company(company_id: int, session: db_dependency, user: user_dependency) -> schema.CompanyDetails:
+    company = await Service(session, user).company_details_by_id(company_id)  # need to create this method in service and repository
+    if not company:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+    return company
