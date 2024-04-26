@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from starlette import status
 
 from app.schemas import companies as schema
@@ -28,6 +28,12 @@ async def get_company(company_id: int, session: db_dependency, user: user_depend
 
 @company_router.patch("/{company_id}")
 async def update_company(company_id: int, request_body: schema.CompanyUpdateRequest,
-                         session: db_dependency, user: user_dependency):
+                         session: db_dependency, user: user_dependency) -> schema.CompanyDetails:
     await Service(session, user).update_company(company_id, request_body)
     return await Service(session, user).company_details_by_id(company_id)
+
+
+@company_router.delete("/{company_id}")
+async def delete_company(company_id: int, session: db_dependency, user: user_dependency) -> str:
+    await Service(session, user).delete_company(company_id)
+    return 'Company deleted'

@@ -29,6 +29,14 @@ class CompanyService:
         new_values_dict = request_body.dict(exclude_unset=True)
         await self.repository.update(company_id, new_values_dict)
 
+    async def delete_company(self, company_id) -> None:
+        company = await self.repository.get_one_by_id(company_id)
+        if not company:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Company not found')
+        if company['owner'] != self.user.username:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Don't have permission to delete company")
+        await self.repository.delete(company_id)
+
     async def get_all_companies(self) -> company_schema.CompanyListResponse:
         companies = await self.repository.get_all()
         return company_schema.CompanyListResponse(companies=companies)

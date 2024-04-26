@@ -25,6 +25,11 @@ class CompanyRepository:
         await self.session.execute(stmt)
         await self.session.commit()
 
+    async def delete(self, company_id) -> None:
+        stmt = delete(self.model).where(self.model.id == company_id)
+        await self.session.execute(stmt)
+        await self.session.commit()
+
     @staticmethod
     async def unpack_company_details(result) -> dict:
         if result:
