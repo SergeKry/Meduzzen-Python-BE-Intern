@@ -27,9 +27,9 @@ def create_access_token(user: users_schema.User):
 
 
 def decode_access_token(token):
-    decoded = jwt.decode(token, settings.JWT_ACCESS_SECRET, audience=settings.JWT_AUD,
+    payload = jwt.decode(token, settings.JWT_ACCESS_SECRET, audience=settings.JWT_AUD,
                          algorithms=[settings.JWT_ALGORITHM])
-    return decoded
+    return payload.get('sub'), payload.get('email'), payload.get('username'), payload.get('exp')
 
 
 def generate_random_password():

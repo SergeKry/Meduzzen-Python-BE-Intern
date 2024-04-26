@@ -9,7 +9,7 @@ from app.services.auth import AuthService
 
 users_router = APIRouter(prefix='/users', tags=['Users'])
 
-payload_dependency = Annotated[user_schema.User, Depends(AuthService().get_current_user)]
+user_dependency = Annotated[user_schema.User, Depends(AuthService().get_current_user)]
 
 
 @users_router.post('/', status_code=status.HTTP_201_CREATED)
@@ -34,10 +34,9 @@ async def read_user(user_id: int, session: AsyncSession = Depends(get_session)) 
 
 
 @users_router.patch('/{user_id}', status_code=status.HTTP_200_OK)
-async def update_user(payload: payload_dependency, user_id: int,
+async def update_user(user: user_dependency, user_id: int,
                       request_body: user_schema.UserUpdateRequest,
                       session: AsyncSession = Depends(get_session)) -> user_schema.UserDetailResponse:
-    user = await UserService(session).user_details_by_email(payload.email)
     if user_id != user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Don't have permission to update user")
     await UserService(session).update_user(user_id, request_body)
@@ -45,9 +44,8 @@ async def update_user(payload: payload_dependency, user_id: int,
 
 
 @users_router.delete('/{user_id}', status_code=status.HTTP_200_OK)
-async def delete_user(payload: payload_dependency, user_id: int,
+async def delete_user(user: user_dependency, user_id: int,
                       session: AsyncSession = Depends(get_session)) -> user_schema.ConfirmationResponse:
-    user = await UserService(session).user_details_by_email(payload.email)
     if user_id != user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Don't have permission to delete user")
     await UserService(session).delete_user(user_id)
