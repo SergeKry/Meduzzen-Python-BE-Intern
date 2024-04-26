@@ -9,7 +9,7 @@ class UserRepository:
         self.session = session
         self.model = db_model.User
 
-    async def create_one(self, user) -> db_model.User:
+    async def create_one(self, user: dict) -> db_model.User:
         new_user = self.model(**user)
         self.session.add(new_user)
         await self.session.commit()
