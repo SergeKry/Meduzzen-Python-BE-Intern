@@ -18,7 +18,7 @@ class BaseModel(Base):
 class User(BaseModel):
     __tablename__: str = 'users'
 
-    username = Column(String(20), unique=True, nullable=False)
+    username = Column(String(100), unique=True, nullable=False)
     email = Column(String(320), unique=True, nullable=False)
     password = Column(String(100), nullable=False)
     role = Column(Integer, ForeignKey('roles.id'), nullable=False, default=2)

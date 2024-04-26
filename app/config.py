@@ -1,8 +1,8 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
@@ -19,6 +19,11 @@ class Settings(BaseSettings):
 
     REDIS_HOST: str
     REDIS_PORT: int
+
+    JWT_ALGORITHM: str
+    JWT_ACCESS_SECRET: str
+    JWT_ACCESS_EXPIRATION: int
+    JWT_AUD: str
 
 
 settings = Settings()

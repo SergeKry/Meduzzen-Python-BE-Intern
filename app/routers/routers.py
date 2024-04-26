@@ -1,4 +1,5 @@
 from app.routers.users import *
+from app.routers.auth import auth_router
 
 health_router = APIRouter()
 

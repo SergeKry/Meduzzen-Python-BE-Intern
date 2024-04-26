@@ -3,6 +3,8 @@ from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.utils import utils
 from app.repository.users import UserRepository
+from app.schemas import users as user_schema
+import app.db.models as db_model
 
 
 class UserService:
@@ -11,8 +13,12 @@ class UserService:
         self.session = session
         self.user_repository = UserRepository(self.session)
 
-    async def user_details(self, user_id: int):
+    async def user_details_by_id(self, user_id: int):
         user = await self.user_repository.get_one_by_id(user_id)
+        return user
+
+    async def user_details_by_email(self, email: str):
+        user = await self.user_repository.get_one_by_email(email)
         return user
 
     async def get_all_users(self):
@@ -27,6 +33,14 @@ class UserService:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Email already exists')
         hashed_password = utils.encrypt_password(user_dict.pop("password2"))
         user_dict.update({'password': hashed_password})
+        new_user = await self.user_repository.create_one(user_dict)
+        return new_user
+
+    async def create_user_from_auth0(self, user: user_schema.User) -> db_model.User:
+        hashed_random_password = utils.generate_random_password()
+        new_user = user_schema.SignUpRequest(username=user.username, email=user.email, password=hashed_random_password, password2=hashed_random_password)
+        user_dict = new_user.dict()
+        user_dict.pop('password2')
         new_user = await self.user_repository.create_one(user_dict)
         return new_user
 

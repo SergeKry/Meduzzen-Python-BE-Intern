@@ -23,7 +23,7 @@ async def read_all_users(session: AsyncSession = Depends(get_session)) -> user_s
 
 @users_router.get('/{user_id}')
 async def read_user(user_id: int, session: AsyncSession = Depends(get_session)) -> user_schema.UserDetailResponse:
-    user = await UserService(session).user_details(user_id)
+    user = await UserService(session).user_details_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
     return user
@@ -33,11 +33,11 @@ async def read_user(user_id: int, session: AsyncSession = Depends(get_session)) 
 async def update_user(user_id: int,
                       request_body: user_schema.UserUpdateRequest,
                       session: AsyncSession = Depends(get_session)) -> user_schema.UserDetailResponse:
-    user = await UserService(session).user_details(user_id)
+    user = await UserService(session).user_details_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
     await UserService(session).update_user(user_id, request_body)
-    return await UserService(session).user_details(user_id)
+    return await UserService(session).user_details_by_id(user_id)
 
 
 @users_router.delete('/{user_id}', status_code=status.HTTP_200_OK)

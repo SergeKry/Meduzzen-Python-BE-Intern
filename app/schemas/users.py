@@ -1,20 +1,26 @@
-from typing import List
+from datetime import datetime
+from typing import List, Union
 from pydantic import BaseModel, Field, EmailStr, field_validator
 from pydantic_core.core_schema import FieldValidationInfo
 
 
 class User(BaseModel):
-    id: int
+    id: Union[int, str]
     username: str
+    email: EmailStr
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
 
 
 class SignInRequest(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=3, max_length=100)
+    password: str = Field(min_length=8, max_length=127)
 
 
 class SignUpRequest(BaseModel):
-    username: str = Field(min_length=3, max_length=20)
+    username: str = Field(min_length=3, max_length=100)
     email: EmailStr
     password: str = Field(min_length=8, max_length=127)
     password2: str = Field(min_length=8, max_length=127)
@@ -28,11 +34,9 @@ class SignUpRequest(BaseModel):
 
 
 class UserUpdateRequest(BaseModel):
-    username: str = Field(min_length=3, max_length=20, default=None)
-    email: EmailStr = Field(default=None)
+    username: str = Field(min_length=3, max_length=100, default=None)
     password: str = Field(min_length=8, max_length=127, default=None)
     password2: str = Field(min_length=8, max_length=127, default=None)
-    role: int = Field(ge=1, le=3, default=None)
 
     @field_validator('password2')
     def passwords_match(cls, v, info: FieldValidationInfo):
@@ -44,8 +48,13 @@ class UserUpdateRequest(BaseModel):
 class UserDetailResponse(BaseModel):
     id: int
     username: str
-    email: str
+    email: EmailStr
     role: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
 
 
 class UserListResponse(BaseModel):
@@ -54,3 +63,8 @@ class UserListResponse(BaseModel):
 
 class ConfirmationResponse(BaseModel):
     message: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
