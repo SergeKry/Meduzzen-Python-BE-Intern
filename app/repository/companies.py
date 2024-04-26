@@ -1,4 +1,4 @@
-from typing import Sequence, List
+from typing import List
 
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,19 +22,28 @@ class CompanyRepository:
 
     @staticmethod
     async def unpack_company_details(result) -> dict:
-        company = result[0]
-        user = result[1]
-        filtered_result = {'id': company.id,
-                           'name': company.name,
-                           'details': company.details,
-                           'owner': user.username,
-                           'created_at': company.created_at}
-        return filtered_result
+        if result:
+            company = result[0]
+            user = result[1]
+            filtered_result = {'id': company.id,
+                               'name': company.name,
+                               'details': company.details,
+                               'owner': user.username,
+                               'created_at': company.created_at}
+            return filtered_result
 
     async def get_one_by_name(self, company_name) -> db_model.Company:
         query = select(self.model).where(self.model.name == company_name)
         result = await self.session.execute(query)
         return result.scalar()
+
+    async def get_one_by_id(self, company_id) -> dict:
+        query = select(self.model,
+                       db_model.User).where(self.model.id == company_id).join(db_model.User,
+                                                                              self.model.owner_id == db_model.User.id)
+        query_result = await self.session.execute(query)
+        result = await self.unpack_company_details(query_result.first())
+        return result
 
     async def get_all(self) -> List[dict]:
         query = select(self.model,db_model.User).join(db_model.User, self.model.owner_id == db_model.User.id)

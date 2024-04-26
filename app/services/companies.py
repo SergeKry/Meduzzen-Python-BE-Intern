@@ -23,3 +23,9 @@ class CompanyService:
     async def get_all_companies(self) -> company_schema.CompanyListResponse:
         companies = await self.repository.get_all()
         return company_schema.CompanyListResponse(companies=companies)
+
+    async def company_details_by_id(self, company_id: int):
+        company = await self.repository.get_one_by_id(company_id)
+        if not company:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Company not found')
+        return company_schema.CompanyDetails(**company)

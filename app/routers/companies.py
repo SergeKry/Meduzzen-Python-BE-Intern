@@ -23,6 +23,4 @@ async def get_all_companies(session: db_dependency, user: user_dependency) -> sc
 @company_router.get("/{company_id}")
 async def get_company(company_id: int, session: db_dependency, user: user_dependency) -> schema.CompanyDetails:
     company = await Service(session, user).company_details_by_id(company_id)  # need to create this method in service and repository
-    if not company:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
     return company
