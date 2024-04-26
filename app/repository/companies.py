@@ -1,3 +1,4 @@
+from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas import users as user_schema
 from app.schemas import companies as company_schema
@@ -16,3 +17,8 @@ class CompanyRepository:
         self.session.add(new_company)
         await self.session.commit()
         return new_company
+
+    async def get_one_by_name(self, company_name) -> db_model.Company:
+        query = select(self.model).where(self.model.name == company_name)
+        result = await self.session.execute(query)
+        return result.scalar()
