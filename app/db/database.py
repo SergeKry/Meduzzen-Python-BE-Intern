@@ -1,6 +1,8 @@
 import asyncio
+import datetime
+from sqlalchemy import Column, Integer, DateTime
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from app.config import settings
 import redis.asyncio as redis
 
@@ -21,3 +23,15 @@ async def init_redis():
     await r.aclose()
 
 asyncio.run(init_redis())
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+class BaseModel(Base):
+    __abstract__ = True
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow(), nullable=False)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow(), nullable=False)

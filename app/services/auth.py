@@ -1,4 +1,3 @@
-from datetime import datetime
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError
 from app.services.users import UserService
@@ -31,11 +30,7 @@ class AuthService:
     async def get_current_user(token: HTTPAuthorizationCredentials = Depends(token_auth_scheme),
                                session: AsyncSession = Depends(get_session)) -> user_schema.User:
         try:
-            user_id, email, username, expiration = decode_access_token(token.credentials)
-            if not username or not email:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid credentials')
-            if datetime.fromtimestamp(expiration) < datetime.now():
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Token expired')
+            user_id, email, username = decode_access_token(token.credentials)
             user = await UserRepository(session).get_one_by_email(email)
             if not user:
                 new_payload_user = user_schema.User(id=user_id, email=email, username=username)

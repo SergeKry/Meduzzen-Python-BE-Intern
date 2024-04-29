@@ -6,7 +6,7 @@ from starlette import status
 from app.schemas import users as user_schema
 from app.db.database import get_session
 from app.services.auth import AuthService
-import app.db.models as db_model
+import app.db.user as db_model
 
 auth_router = APIRouter(tags=['Auth'])
 

@@ -1,7 +1,7 @@
 from typing import Sequence
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-import app.db.models as db_model
+import app.db.user as db_model
 
 
 class UserRepository:
