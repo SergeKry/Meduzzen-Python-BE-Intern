@@ -1,7 +1,18 @@
 from datetime import datetime
-from typing import List, Union
-
+from typing import List
 from pydantic import BaseModel, Field
+
+
+class Company(BaseModel):
+    id: int
+    name: str
+    details: str
+    owner_id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
 
 
 class CompanyDetails(BaseModel):
@@ -18,6 +29,10 @@ class CompanyDetails(BaseModel):
 
 class CompanyListResponse(BaseModel):
     companies: List[CompanyDetails]
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
 
 
 class CompanyCreateRequest(BaseModel):

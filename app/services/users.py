@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.utils import utils
 from app.repository.users import UserRepository
 from app.schemas import users as user_schema
-import app.db.models as db_model
+import app.db.user as db_model
 
 
 class UserService:
@@ -38,7 +38,8 @@ class UserService:
 
     async def create_user_from_auth0(self, user: user_schema.User) -> db_model.User:
         hashed_random_password = utils.generate_random_password()
-        new_user = user_schema.SignUpRequest(username=user.username, email=user.email, password=hashed_random_password, password2=hashed_random_password)
+        new_user = user_schema.SignUpRequest(username=user.username, email=user.email, password=hashed_random_password,
+                                             password2=hashed_random_password)
         user_dict = new_user.dict()
         user_dict.pop('password2')
         new_user = await self.user_repository.create_one(user_dict)

@@ -1,8 +1,12 @@
 import string
 from datetime import datetime, timedelta
 import bcrypt
+from fastapi import HTTPException
 from jose import jwt
 import random
+
+from starlette import status
+
 from app.config import settings
 from app.schemas import users as users_schema
 
@@ -29,7 +33,15 @@ def create_access_token(user: users_schema.User):
 def decode_access_token(token):
     payload = jwt.decode(token, settings.JWT_ACCESS_SECRET, audience=settings.JWT_AUD,
                          algorithms=[settings.JWT_ALGORITHM])
-    return payload.get('sub'), payload.get('email'), payload.get('username'), payload.get('exp')
+    user_id = payload.get('sub')
+    email = payload.get('email')
+    username = payload.get('username')
+    expiration = payload.get('exp')
+    if not username or not email:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid credentials')
+    if datetime.fromtimestamp(expiration) < datetime.now():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Token expired')
+    return user_id, email, username
 
 
 def generate_random_password():
