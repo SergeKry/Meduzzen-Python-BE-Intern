@@ -4,6 +4,7 @@ from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from app.repository.companies import CompanyRepository
+from app.repository.actions import ActionsRepository
 from app.schemas import users as user_schema
 from app.schemas import companies as company_schema
 from app.utils.utils import decode_access_token
@@ -14,6 +15,7 @@ token_auth_scheme = HTTPBearer()
 class CompanyService:
 
     def __init__(self, session: AsyncSession, token=None):
+        self.session = session
         self.token = token
         self.repository = CompanyRepository(session)
 
@@ -21,7 +23,10 @@ class CompanyService:
                              user: user_schema.User) -> company_schema.CompanyCreateResponse:
         if await self.repository.get_one_by_name(company_details.name):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Such company already exists')
+        #  Creating Company
         new_company = await self.repository.create(company_details, user.id)
+        #  Adding owner as company member with OWNER role
+        await ActionsRepository(self.session).add_member(new_company.id, user.id, role_id=1)
         return company_schema.CompanyCreateResponse.from_orm(new_company)
 
     async def get_company_details(self, company_id: int):

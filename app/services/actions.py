@@ -41,17 +41,22 @@ class ActionService:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
         return user
 
+    async def check_existing_member(self, company_id: int, user_id: int):
+        member = await ActionsRepository(self.session).get_member(company_id, user_id)
+        if member:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='User already in the company')
+
     async def create_action(self, request_body: action_schema.ActionCreateRequest) -> action_schema.ActionResponse:
         """Checking access based on request type. Creating action if user is validated."""
         company_id = request_body.company_id
         user_id = request_body.user_id
+        await self.check_existing_member(company_id, user_id)
         if request_body.request_type == RequestType.INVITATION:
             company, owner = await self.owner_validation(company_id)
             user = await UserService(self.session).user_details_by_id(user_id)
         else:
             user = await self.member_validation(user_id)
             company, owner = await CompanyService(self.session).get_company_details(company_id)
-        #  Check that user is not a member of a company
         if await ActionsRepository(self.session).get_action_duplicate(company_id, user_id, request_body.request_type,
                                                                       Status.PENDING):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='User Already invited')
@@ -66,6 +71,7 @@ class ActionService:
         return action
 
     async def update_action(self, action_id, new_status: Status) -> action_schema.ActionResponse:
+        """This is to accept or decline. Works for both requests and invitations"""
         action = await self.get_action(action_id)
         user = await self.get_current_user()
         if action.request_type == RequestType.REQUEST and user.id == action.user_id or\

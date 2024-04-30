@@ -79,3 +79,9 @@ class ActionsRepository:
         new_member = self.member_model(company_id=company_id, user_id=user_id, role_id=role_id)
         self.session.add(new_member)
         await self.session.commit()
+
+    async def get_member(self, company_id: int, user_id: int):
+        query = select(self.member_model).filter(self.member_model.company_id == company_id)\
+            .filter(self.member_model.user_id == user_id)
+        query_result = await self.session.execute(query)
+        return query_result.first()
