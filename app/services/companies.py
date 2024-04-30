@@ -32,7 +32,7 @@ class CompanyService:
         user = user_schema.User.from_orm(result[1])
         return company, user
 
-    async def validate_permissions(self, user: user_schema.User) -> bool:
+    async def validate_owner_permissions(self, user: user_schema.User) -> bool:
         try:
             token_user_id, token_email, token_username = decode_access_token(self.token.credentials)
         except JWTError:
@@ -43,13 +43,13 @@ class CompanyService:
 
     async def update_company(self, company_id, request_body) -> None:
         company, user = await self.get_company_details(company_id)
-        if await self.validate_permissions(user):
+        if await self.validate_owner_permissions(user):
             new_values_dict = request_body.dict(exclude_unset=True)
             await self.repository.update(company_id, new_values_dict)
 
     async def delete_company(self, company_id) -> None:
         company, user = await self.get_company_details(company_id)
-        if await self.validate_permissions(user):
+        if await self.validate_owner_permissions(user):
             await self.repository.delete(company_id)
 
     async def get_all_companies(self) -> dict:

@@ -15,10 +15,14 @@ class UserService:
 
     async def user_details_by_id(self, user_id: int):
         user = await self.user_repository.get_one_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
         return user
 
     async def user_details_by_email(self, email: str):
         user = await self.user_repository.get_one_by_email(email)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
         return user
 
     async def get_all_users(self):

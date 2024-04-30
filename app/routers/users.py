@@ -23,8 +23,6 @@ async def read_all_users(session: db_dependency) -> user_schema.UserListResponse
 @users_router.get('/{user_id}')
 async def read_user(user_id: int, session: db_dependency) -> user_schema.UserDetailResponse:
     user = await UserService(session).user_details_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
     return user
 
 
