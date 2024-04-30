@@ -20,8 +20,19 @@ class ActionsRepository:
         return new_action
 
     async def get_user_actions(self, user_id, request_type: db_model.RequestType):
-        query = select(self.action_model.id, self.company_model.name, self.user_model.username, self.action_model.status).\
-            join(self.company_model, self.action_model.company_id == self.company_model.id).\
-            join(self.user_model, self.user_model.id == self.action_model.user_id).filter(self.action_model.request_type == request_type).filter(self.action_model.user_id == user_id)
+        query = select(self.action_model.id, self.company_model.name, self.user_model.username, self.action_model.status)\
+            .join(self.company_model, self.action_model.company_id == self.company_model.id)\
+            .join(self.user_model, self.user_model.id == self.action_model.user_id)\
+            .filter(self.action_model.request_type == request_type)\
+            .filter(self.action_model.user_id == user_id)
+        query_result = await self.session.execute(query)
+        return query_result.all()
+
+    async def get_company_actions(self, company_id: int, request_type: db_model.RequestType):
+        query = select(self.action_model.id, self.company_model.name, self.user_model.username,self.action_model.status)\
+            .join(self.company_model, self.action_model.company_id == self.company_model.id) \
+            .join(self.user_model, self.user_model.id == self.action_model.user_id)\
+            .filter(self.action_model.request_type == request_type)\
+            .filter(self.action_model.company_id == company_id)
         query_result = await self.session.execute(query)
         return query_result.all()

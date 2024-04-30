@@ -30,20 +30,20 @@ async def get_users_requests(session: db_dependency, token: token_dependency):
     return act_schema.ActionListResponse(type=action_type, actions=actions)
 
 
-@action_router.get("/action/company_invites/{company_id}",
-                   tags=["Actions"])  # response_model=act_schema.ActionListResponse
-async def get_company_invitations(company_id, session: db_dependency, token: token_dependency,
-                              action_type=RequestType.INVITATION):
-    await ActServ(session, token).get_company_actions(company_id, action_type)
-    #  return list of company actions with action type == invitation
+@action_router.get("/action/company_invites/{company_id}", response_model=act_schema.ActionListResponse,
+                   tags=["Actions"])
+async def get_company_invitations(company_id: int, session: db_dependency, token: token_dependency):
+    action_type = RequestType.INVITATION
+    actions = await ActServ(session, token).get_company_actions(company_id, action_type)
+    return act_schema.ActionListResponse(type=action_type, actions=actions)
 
 
-@action_router.get("/action/company_requests/{company_id}",
-                   response_model=act_schema.ActionListResponse, tags=["Actions"])  # list of requests of those who want to join, company id as param
-async def get_company_requests(company_id, session: db_dependency, token: token_dependency,
-                               action_type=RequestType.REQUEST):
-    await ActServ(session, token).get_company_actions(company_id, action_type)
-    #  return list of company actions with action type == request
+@action_router.get("/action/company_requests/{company_id}", response_model=act_schema.ActionListResponse,
+                   tags=["Actions"])
+async def get_company_requests(company_id: int, session: db_dependency, token: token_dependency):
+    action_type = RequestType.REQUEST
+    actions = await ActServ(session, token).get_company_actions(company_id, action_type)
+    return act_schema.ActionListResponse(type=action_type, actions=actions)
 
 
 @action_router.patch("/action/{action_id}", tags=["Actions"])  # this is to accept/decline

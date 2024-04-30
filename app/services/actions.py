@@ -3,7 +3,6 @@ from jose import JWTError
 from starlette import status
 from app.services.companies import CompanyService
 from app.services.users import UserService
-from app.services.auth import AuthService
 from app.repository.actions import ActionsRepository
 import app.schemas.actions as action_schema
 from app.utils.utils import decode_access_token
@@ -16,7 +15,7 @@ class ActionService:
         self.token = token
 
     async def owner_validation(self, company_id: int):
-        """Validating that user is company owner"""
+        """Validating that user is company owner. And returns company, owner pair"""
         try:
             token_user_id, token_email, token_username = decode_access_token(self.token.credentials)
         except JWTError:
@@ -43,7 +42,7 @@ class ActionService:
         return user
 
     async def create_action(self, request_body: action_schema.ActionCreateRequest) -> action_schema.ActionResponse:
-        """Checking access based on request type. And creating action."""
+        """Checking access based on request type. Creating action if user is validated."""
         company_id = request_body.company_id
         user_id = request_body.user_id
         if request_body.request_type == RequestType.INVITATION:
@@ -70,8 +69,7 @@ class ActionService:
         Than delete an action"""
 
     async def get_actions(self, action_type: RequestType):
-        """get all actions where user == user id from token
-        based on type"""
+        """Get all actions for current user"""
         user = await self.get_current_user()
         actions = await ActionsRepository(self.session).get_user_actions(user.id, action_type)
         actions_list = [action_schema.ActionResponse(action_id=action.id,
@@ -80,9 +78,15 @@ class ActionService:
                                                      status=action.status) for action in actions]
         return actions_list
 
-    async def get_company_actions(self, action_type, company_id):
-        """get all actions of a company
-        need to check that token id == company owner id"""
+    async def get_company_actions(self, company_id: int, action_type):
+        """Get all actions for specified company"""
+        await self.owner_validation(company_id)
+        actions = await ActionsRepository(self.session).get_company_actions(company_id, action_type)
+        actions_list = [action_schema.ActionResponse(action_id=action.id,
+                                                     company_name=action.name,
+                                                     username=action.username,
+                                                     status=action.status) for action in actions]
+        return actions_list
 
     async def get_all_members(self, company_id):
         """get all members of a company
