@@ -30,4 +30,4 @@ class ActionListResponse(BaseModel):
 
 
 class ActionUpdateRequest(BaseModel):
-    status: str
+    status: Status

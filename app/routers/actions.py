@@ -1,10 +1,11 @@
-from fastapi import APIRouter
+
+from fastapi import APIRouter, HTTPException
 from starlette import status
 from app.routers.routers import db_dependency, token_dependency
 from app.schemas import actions as act_schema
 from app.schemas import companies as comp_schema
 from app.services.actions import ActionService as ActServ
-from app.db.company import RequestType
+from app.db.company import RequestType, Status
 
 action_router = APIRouter()
 
@@ -46,11 +47,14 @@ async def get_company_requests(company_id: int, session: db_dependency, token: t
     return act_schema.ActionListResponse(type=action_type, actions=actions)
 
 
-@action_router.patch("/action/{action_id}", tags=["Actions"])  # this is to accept/decline
-async def update_action(action_id: int, request_body,
+@action_router.patch("/action/{action_id}", response_model=act_schema.ActionResponse, tags=["Actions"])  # this is to accept/decline
+async def update_action(action_id: int, request_body: act_schema.ActionUpdateRequest,
                         session: db_dependency, token: token_dependency):
-    await ActServ(session, token).update_action(action_id, request_body)
-    # return updated here
+    requested_status = request_body.status
+    if requested_status == Status.PENDING:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Status can be either Accepted or Declined")
+    updated_action = await ActServ(session, token).update_action(action_id, requested_status)
+    return updated_action
 
 
 @action_router.delete("/action/{action_id}", tags=["Actions"])

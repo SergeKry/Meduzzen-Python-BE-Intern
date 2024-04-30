@@ -6,7 +6,7 @@ from app.services.users import UserService
 from app.repository.actions import ActionsRepository
 import app.schemas.actions as action_schema
 from app.utils.utils import decode_access_token
-from app.db.company import RequestType
+from app.db.company import RequestType, Status
 
 
 class ActionService:
@@ -58,17 +58,31 @@ class ActionService:
         return action_schema.ActionResponse(action_id=action.id, company_name=company.name,
                                             username=user.username, status=action.status)
 
-    async def update_action(self, action_id, request_body):
-        """We need to get action from db first to check status
-        if type == invitation, check that company owner == token (via func)
-        if type == request, check that requester id = token id (via func)
-        Than change only accept or decline"""
-
-    async def delete_action(self, action_id):
-        """Delete action if exists"""
+    async def get_action(self, action_id: int):
         action = await ActionsRepository(self.session).get_action_by_id(action_id)
         if not action:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Action not found')
+        return action
+
+    async def update_action(self, action_id, new_status: Status) -> action_schema.ActionResponse:
+        action = await self.get_action(action_id)
+        user = await self.get_current_user()
+        if action.request_type == RequestType.REQUEST and user.id == action.user_id or\
+                action.request_type == RequestType.INVITATION and user.id == action.owner_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
+        if action.status != Status.PENDING:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'{action.request_type.value} is closed')
+        await ActionsRepository(self.session).update_action(action_id, new_status)
+        # create new member if status = accepted
+        updated_action = await ActionsRepository(self.session).get_action_details(action_id)
+        return action_schema.ActionResponse(action_id=updated_action.id,
+                                            company_name=updated_action.name,
+                                            username=updated_action.username,
+                                            status=updated_action.status)
+
+    async def delete_action(self, action_id):
+        """Delete action if exists"""
+        action = await self.get_action(action_id)
         user = await self.get_current_user()
         if action.request_type == RequestType.REQUEST and user.id != action.user_id or\
                 action.request_type == RequestType.INVITATION and user.id != action.owner_id:
