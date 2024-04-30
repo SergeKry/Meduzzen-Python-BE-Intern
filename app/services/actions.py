@@ -1,9 +1,9 @@
 from fastapi import HTTPException
 from jose import JWTError
-from sqlalchemy.orm import Session
 from starlette import status
 from app.services.companies import CompanyService
 from app.services.users import UserService
+from app.services.auth import AuthService
 from app.repository.actions import ActionsRepository
 import app.schemas.actions as action_schema
 from app.utils.utils import decode_access_token
@@ -26,13 +26,18 @@ class ActionService:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
         return company, owner
 
-    async def member_validation(self, user_id):
-        """Checking that user requests for himself"""
+    async def get_current_user(self):
+        """Get real user id from database here"""
         try:
             token_user_id, token_email, token_username = decode_access_token(self.token.credentials)
         except JWTError:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Token invalid')
-        user = await UserService(self.session).user_details_by_email(token_email)
+        current_user = await UserService(self.session).user_details_by_email(token_email)
+        return current_user
+
+    async def member_validation(self, user_id: int):
+        """Check permissions of user"""
+        user = await self.get_current_user()
         if user_id != user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
         return user
@@ -48,6 +53,7 @@ class ActionService:
             user = await self.member_validation(user_id)
             company, owner = await CompanyService(self.session).get_company_details(company_id)
         #  Check that user is not a member of a company
+        #  Check if such invitation does not exist
         action = await ActionsRepository(self.session).create_action(request_body)
         return action_schema.ActionResponse(action_id=action.id, company_name=company.name,
                                             username=user.username, request_type=request_body.request_type)
@@ -63,9 +69,16 @@ class ActionService:
         if type == request, check that requester id = token id (via func)
         Than delete an action"""
 
-    async def get_actions(self, action_type):
+    async def get_actions(self, action_type: RequestType):
         """get all actions where user == user id from token
         based on type"""
+        user = await self.get_current_user()
+        actions = await ActionsRepository(self.session).get_user_actions(user.id, action_type)
+        actions_list = [action_schema.ActionResponse(action_id=action.id,
+                                                     company_name=action.name,
+                                                     username=action.username,
+                                                     status=action.status) for action in actions]
+        return actions_list
 
     async def get_company_actions(self, action_type, company_id):
         """get all actions of a company

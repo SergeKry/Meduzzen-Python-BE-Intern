@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from starlette import status
 from app.routers.routers import db_dependency, token_dependency
 from app.schemas import actions as act_schema
 from app.schemas import companies as comp_schema
 from app.services.actions import ActionService as ActServ
+from app.db.company import RequestType
 
 action_router = APIRouter()
 
@@ -15,30 +16,32 @@ async def create_action(request: act_schema.ActionCreateRequest, session: db_dep
     return new_action
 
 
-@action_router.get("/action/my_invitations",
-                   response_model=act_schema.ActionListResponse, tags=["Actions"])  # list of user's invites. need response model
-async def get_users_invites(session: db_dependency, token: token_dependency, action_type: str = 'invitation'):
-    await ActServ(session, token).get_actions(action_type)
-    #  return list of all actions with action type = invitation
+@action_router.get("/action/my_invitations", response_model=act_schema.ActionListResponse, tags=["Actions"])
+async def get_users_invitations(session: db_dependency, token: token_dependency):
+    action_type = RequestType.INVITATION
+    actions = await ActServ(session, token).get_actions(action_type)
+    return act_schema.ActionListResponse(type=action_type, actions=actions)
 
 
-@action_router.get("/action/my_requests",
-                   response_model=act_schema.ActionListResponse, tags=["Actions"])  # list of users requests
-async def get_users_requests(session: db_dependency, token: token_dependency, action_type: str = 'request'):
-    await ActServ(session, token).get_actions(action_type)
-    #  return list of all actions with action type = invitation
+@action_router.get("/action/my_requests", response_model=act_schema.ActionListResponse, tags=["Actions"])
+async def get_users_requests(session: db_dependency, token: token_dependency):
+    action_type = RequestType.REQUEST
+    actions = await ActServ(session, token).get_actions(action_type)
+    return act_schema.ActionListResponse(type=action_type, actions=actions)
 
 
 @action_router.get("/action/company_invites/{company_id}",
-                   response_model=act_schema.ActionListResponse, tags=["Actions"])  # list of invites users, company id as param?
-async def get_company_actions(company_id, session: db_dependency, token: token_dependency, action_type: str = 'invitation'):
+                   tags=["Actions"])  # response_model=act_schema.ActionListResponse
+async def get_company_invitations(company_id, session: db_dependency, token: token_dependency,
+                              action_type=RequestType.INVITATION):
     await ActServ(session, token).get_company_actions(company_id, action_type)
     #  return list of company actions with action type == invitation
 
 
 @action_router.get("/action/company_requests/{company_id}",
                    response_model=act_schema.ActionListResponse, tags=["Actions"])  # list of requests of those who want to join, company id as param
-async def get_company_requests(company_id, session: db_dependency, token: token_dependency, action_type: str = 'request'):
+async def get_company_requests(company_id, session: db_dependency, token: token_dependency,
+                               action_type=RequestType.REQUEST):
     await ActServ(session, token).get_company_actions(company_id, action_type)
     #  return list of company actions with action type == request
 
