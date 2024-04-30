@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 import app.db.company as db_model
 import app.db.user as user_model
@@ -18,6 +18,28 @@ class ActionsRepository:
         self.session.add(new_action)
         await self.session.commit()
         return new_action
+
+    async def get_action_duplicate(self, company_id: int, user_id: int, request_type: db_model.RequestType):
+        query = select(self.action_model)\
+            .filter(self.action_model.company_id == company_id)\
+            .filter(self.action_model.user_id == user_id)\
+            .filter(self.action_model.request_type == request_type)
+        query_result = await self.session.execute(query)
+        return query_result.first()
+
+    async def get_action_by_id(self, action_id: int):
+        """Returns action_id, user_id, action request_type, company_owner_id"""
+        query = select(self.action_model.id, self.action_model.user_id, self.action_model.request_type,
+                       self.company_model.owner_id)\
+            .join(self.company_model, self.action_model.company_id == self.company_model.id)\
+            .filter(self.action_model.id == action_id)
+        query_result = await self.session.execute(query)
+        return query_result.first()
+
+    async def delete_action(self, action_id: int):
+        stmt = delete(self.action_model).where(self.action_model.id == action_id)
+        await self.session.execute(stmt)
+        await self.session.commit()
 
     async def get_user_actions(self, user_id, request_type: db_model.RequestType):
         query = select(self.action_model.id, self.company_model.name, self.user_model.username, self.action_model.status)\

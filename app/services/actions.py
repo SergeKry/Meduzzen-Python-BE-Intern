@@ -35,7 +35,7 @@ class ActionService:
         return current_user
 
     async def member_validation(self, user_id: int):
-        """Check permissions of user"""
+        """Check permissions of member"""
         user = await self.get_current_user()
         if user_id != user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
@@ -52,10 +52,11 @@ class ActionService:
             user = await self.member_validation(user_id)
             company, owner = await CompanyService(self.session).get_company_details(company_id)
         #  Check that user is not a member of a company
-        #  Check if such invitation does not exist
+        if await ActionsRepository(self.session).get_action_duplicate(company_id, user_id, request_body.request_type):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='User Already invited')
         action = await ActionsRepository(self.session).create_action(request_body)
         return action_schema.ActionResponse(action_id=action.id, company_name=company.name,
-                                            username=user.username, request_type=request_body.request_type)
+                                            username=user.username, status=action.status)
 
     async def update_action(self, action_id, request_body):
         """We need to get action from db first to check status
@@ -64,9 +65,16 @@ class ActionService:
         Than change only accept or decline"""
 
     async def delete_action(self, action_id):
-        """if type == invitation, check that company owner == token (via func)
-        if type == request, check that requester id = token id (via func)
-        Than delete an action"""
+        """Delete action if exists"""
+        action = await ActionsRepository(self.session).get_action_by_id(action_id)
+        if not action:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Action not found')
+        user = await self.get_current_user()
+        if action.request_type == RequestType.REQUEST and user.id != action.user_id or\
+                action.request_type == RequestType.INVITATION and user.id != action.owner_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
+        await ActionsRepository(self.session).delete_action(action_id)
+        return action.request_type
 
     async def get_actions(self, action_type: RequestType):
         """Get all actions for current user"""

@@ -47,20 +47,20 @@ async def get_company_requests(company_id: int, session: db_dependency, token: t
 
 
 @action_router.patch("/action/{action_id}", tags=["Actions"])  # this is to accept/decline
-async def update_action(action_id, request_body,
+async def update_action(action_id: int, request_body,
                         session: db_dependency, token: token_dependency):
     await ActServ(session, token).update_action(action_id, request_body)
     # return updated here
 
 
 @action_router.delete("/action/{action_id}", tags=["Actions"])
-async def delete_action(action_id, session: db_dependency, token: token_dependency):
-    await ActServ(session, token).delete_action(action_id)
-    # return some confirmation
+async def delete_action(action_id: int, session: db_dependency, token: token_dependency):
+    action_type = await ActServ(session, token).delete_action(action_id)
+    return {"message": f"{action_type.value} deleted"}
 
 
 @action_router.get("/members/{company_id}",
-                   response_model=comp_schema.MemberList, tags=['Members'])  # get all members of a company
+                   response_model=comp_schema.MemberList, tags=['Members'])
 async def get_company_members(company_id: int, session: db_dependency, token: token_dependency):
     await ActServ(session, token).get_all_members(company_id)
     #  return list of members
