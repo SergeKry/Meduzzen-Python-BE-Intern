@@ -11,6 +11,7 @@ class ActionsRepository:
         self.action_model = db_model.Action
         self.company_model = db_model.Company
         self.user_model = user_model.User
+        self.member_model = db_model.CompanyMember
 
     async def create_action(self, action: action_schema.ActionCreateRequest):
         new_action = self.action_model(**action.dict(), status=Status.PENDING)
@@ -18,18 +19,20 @@ class ActionsRepository:
         await self.session.commit()
         return new_action
 
-    async def get_action_duplicate(self, company_id: int, user_id: int, request_type: db_model.RequestType):
+    async def get_action_duplicate(self, company_id: int, user_id: int, request_type: db_model.RequestType,
+                                   status: Status):
         query = select(self.action_model)\
             .filter(self.action_model.company_id == company_id)\
             .filter(self.action_model.user_id == user_id)\
-            .filter(self.action_model.request_type == request_type)
+            .filter(self.action_model.request_type == request_type)\
+            .filter(self.action_model.status == status)
         query_result = await self.session.execute(query)
         return query_result.first()
 
     async def get_action_by_id(self, action_id: int):
-        """Returns action_id, user_id, action request_type, company_owner_id, action_status"""
+        """Returns action_id, user_id, action request_type, company_owner_id, action_status, company_id"""
         query = select(self.action_model.id, self.action_model.user_id, self.action_model.request_type,
-                       self.company_model.owner_id, self.action_model.status)\
+                       self.company_model.owner_id, self.action_model.status, self.action_model.company_id)\
             .join(self.company_model, self.action_model.company_id == self.company_model.id)\
             .filter(self.action_model.id == action_id)
         query_result = await self.session.execute(query)
@@ -71,3 +74,8 @@ class ActionsRepository:
             .filter(self.action_model.company_id == company_id)
         query_result = await self.session.execute(query)
         return query_result.all()
+
+    async def add_member(self, company_id: int, user_id: int, role_id: int = 3) -> None:
+        new_member = self.member_model(company_id=company_id, user_id=user_id, role_id=role_id)
+        self.session.add(new_member)
+        await self.session.commit()

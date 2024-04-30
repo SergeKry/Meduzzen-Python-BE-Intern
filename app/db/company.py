@@ -46,7 +46,7 @@ class CompanyMember(BaseModel):
 
     company_id = Column(Integer, ForeignKey('companies.id', ondelete='CASCADE'), primary_key=True, nullable=False)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), primary_key=True, nullable=False)
-    role_id = Column(Integer, ForeignKey('roles.id', ondelete='CASCADE'), nullable=False)
+    role_id = Column(Integer, ForeignKey('company_roles.id', ondelete='CASCADE'), nullable=False)
 
     company = relationship("Company", back_populates="members")
     user = relationship("User", back_populates="companies")

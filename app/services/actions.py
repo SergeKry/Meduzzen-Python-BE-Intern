@@ -15,7 +15,7 @@ class ActionService:
         self.token = token
 
     async def owner_validation(self, company_id: int):
-        """Validating that user is company owner. And returns company, owner pair"""
+        """Validating that user is company owner. And returns company-owner pair"""
         try:
             token_user_id, token_email, token_username = decode_access_token(self.token.credentials)
         except JWTError:
@@ -52,7 +52,8 @@ class ActionService:
             user = await self.member_validation(user_id)
             company, owner = await CompanyService(self.session).get_company_details(company_id)
         #  Check that user is not a member of a company
-        if await ActionsRepository(self.session).get_action_duplicate(company_id, user_id, request_body.request_type):
+        if await ActionsRepository(self.session).get_action_duplicate(company_id, user_id, request_body.request_type,
+                                                                      Status.PENDING):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='User Already invited')
         action = await ActionsRepository(self.session).create_action(request_body)
         return action_schema.ActionResponse(action_id=action.id, company_name=company.name,
@@ -73,7 +74,8 @@ class ActionService:
         if action.status != Status.PENDING:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'{action.request_type.value} is closed')
         await ActionsRepository(self.session).update_action(action_id, new_status)
-        # create new member if status = accepted
+        if new_status == Status.ACCEPTED:
+            await ActionsRepository(self.session).add_member(action.company_id, action.user_id)
         updated_action = await ActionsRepository(self.session).get_action_details(action_id)
         return action_schema.ActionResponse(action_id=updated_action.id,
                                             company_name=updated_action.name,
