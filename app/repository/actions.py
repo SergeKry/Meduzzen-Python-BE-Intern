@@ -12,6 +12,7 @@ class ActionsRepository:
         self.company_model = db_model.Company
         self.user_model = user_model.User
         self.member_model = db_model.CompanyMember
+        self.role_model = db_model.CompanyRole
 
     async def create_action(self, action: action_schema.ActionCreateRequest):
         new_action = self.action_model(**action.dict(), status=Status.PENDING)
@@ -51,7 +52,6 @@ class ActionsRepository:
         await self.session.execute(stmt)
         await self.session.commit()
 
-
     async def delete_action(self, action_id: int):
         stmt = delete(self.action_model).where(self.action_model.id == action_id)
         await self.session.execute(stmt)
@@ -68,7 +68,7 @@ class ActionsRepository:
 
     async def get_company_actions(self, company_id: int, request_type: db_model.RequestType):
         query = select(self.action_model.id, self.company_model.name, self.user_model.username,self.action_model.status)\
-            .join(self.company_model, self.action_model.company_id == self.company_model.id) \
+            .join(self.company_model, self.action_model.company_id == self.company_model.id)\
             .join(self.user_model, self.user_model.id == self.action_model.user_id)\
             .filter(self.action_model.request_type == request_type)\
             .filter(self.action_model.company_id == company_id)
@@ -80,8 +80,21 @@ class ActionsRepository:
         self.session.add(new_member)
         await self.session.commit()
 
-    async def get_member(self, company_id: int, user_id: int):
-        query = select(self.member_model).filter(self.member_model.company_id == company_id)\
-            .filter(self.member_model.user_id == user_id)
+    async def get_member_by_id(self, user_id: int, company_id: int):
+        query = select(self.member_model).filter(self.member_model.user_id == user_id)\
+            .filter(self.member_model.company_id == company_id)
         query_result = await self.session.execute(query)
-        return query_result.first()
+        return query_result.scalar()
+
+    async def get_all_members(self, company_id: int):
+        query = select(self.member_model.company_id, self.member_model.user_id,
+                       self.user_model.username, self.role_model.role_name).join(self.user_model).join(self.role_model)\
+                    .filter(self.member_model.company_id == company_id)
+        query_result = await self.session.execute(query)
+        return query_result.all()
+
+    async def delete_member(self, user_id: int, company_id: int):
+        stmt = delete(self.member_model).where(self.member_model.user_id == user_id)\
+            .where(self.member_model.company_id == company_id)
+        await self.session.execute(stmt)
+        await self.session.commit()

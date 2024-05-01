@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, HTTPException
 from starlette import status
 from app.routers.routers import db_dependency, token_dependency
@@ -48,7 +47,7 @@ async def get_company_requests(company_id: int, session: db_dependency, token: t
 
 
 @action_router.patch("/action/{action_id}", response_model=act_schema.ActionResponse, tags=["Actions"])  # this is to accept/decline
-async def update_action(action_id: int, request_body: act_schema.ActionUpdateRequest,
+async def accept_decline_action(action_id: int, request_body: act_schema.ActionUpdateRequest,
                         session: db_dependency, token: token_dependency):
     requested_status = request_body.status
     if requested_status == Status.PENDING:
@@ -63,15 +62,14 @@ async def delete_action(action_id: int, session: db_dependency, token: token_dep
     return {"message": f"{action_type.value} deleted"}
 
 
-@action_router.get("/members/{company_id}",
-                   response_model=comp_schema.MemberList, tags=['Members'])
+@action_router.get("/members/{company_id}", response_model=comp_schema.MemberList, tags=['Members'])
 async def get_company_members(company_id: int, session: db_dependency, token: token_dependency):
-    await ActServ(session, token).get_all_members(company_id)
-    #  return list of members
+    members = await ActServ(session, token).get_all_members(company_id)
+    return members
 
 
 @action_router.delete("/members/{company_id}", tags=['Members'])
 async def remove_member(delete_request: comp_schema.MemberDeleteRequest, company_id: int,
                         session: db_dependency, token: token_dependency):
     await ActServ(session, token).remove_member(delete_request, company_id)
-    #  need to return some confirmation
+    return {"message": "User deleted"}

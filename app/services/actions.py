@@ -5,8 +5,9 @@ from app.services.companies import CompanyService
 from app.services.users import UserService
 from app.repository.actions import ActionsRepository
 import app.schemas.actions as action_schema
+import app.schemas.companies as company_schema
 from app.utils.utils import decode_access_token
-from app.db.company import RequestType, Status
+from app.db.company import RequestType, Status, RoleName
 
 
 class ActionService:
@@ -15,7 +16,7 @@ class ActionService:
         self.token = token
 
     async def owner_validation(self, company_id: int):
-        """Validating that user is company owner. And returns company-owner pair"""
+        """Validation for create action. User should be company owner. Func returns company-owner pair"""
         try:
             token_user_id, token_email, token_username = decode_access_token(self.token.credentials)
         except JWTError:
@@ -35,19 +36,20 @@ class ActionService:
         return current_user
 
     async def member_validation(self, user_id: int):
-        """Check permissions of member"""
+        """Check permissions of member for creating a membership request"""
         user = await self.get_current_user()
         if user_id != user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
         return user
 
     async def check_existing_member(self, company_id: int, user_id: int):
-        member = await ActionsRepository(self.session).get_member(company_id, user_id)
+        """Check to avoid member duplicates inside a company"""
+        member = await ActionsRepository(self.session).get_member_by_id(user_id, company_id)
         if member:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='User already in the company')
 
     async def create_action(self, request_body: action_schema.ActionCreateRequest) -> action_schema.ActionResponse:
-        """Checking access based on request type. Creating action if user is validated."""
+        """Check access based on request type. Creating action if user is validated."""
         company_id = request_body.company_id
         user_id = request_body.user_id
         await self.check_existing_member(company_id, user_id)
@@ -71,7 +73,7 @@ class ActionService:
         return action
 
     async def update_action(self, action_id, new_status: Status) -> action_schema.ActionResponse:
-        """This is to accept or decline. Works for both requests and invitations"""
+        """Accept or decline invitations/requests"""
         action = await self.get_action(action_id)
         user = await self.get_current_user()
         if action.request_type == RequestType.REQUEST and user.id == action.user_id or\
@@ -118,9 +120,26 @@ class ActionService:
                                                      status=action.status) for action in actions]
         return actions_list
 
-    async def get_all_members(self, company_id):
-        """get all members of a company
-        need to check that token id == company owner id"""
+    async def get_all_members(self, company_id) -> company_schema.MemberList:
+        """Get all members of a company. Validation is made for company owner"""
+        members = await ActionsRepository(self.session).get_all_members(company_id)
+        if not members:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+        owner = await self.get_current_user()
+        if owner.id != members[0].user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
+        members_list = [company_schema.Member(username=member.username, role=member.role_name) for member in members]
+        return company_schema.MemberList(members=members_list)
 
-    async def remove_member(self, delete_request, company_id):  # delete request has user id and company id
-        """need to validate either token_id == user_id from request OR company_owner_id == token_id"""
+    async def remove_member(self, delete_request, company_id: int):
+        """Remove member. Member can remove himself OR owner can remove a member. Owner can't be removed at all"""
+        member = await ActionsRepository(self.session).get_member_by_id(delete_request.user_id, company_id)
+        if not member:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Member not found')
+        current_user = await self.get_current_user()
+        company, owner = await CompanyService(self.session).get_company_details(company_id)
+        if member.user_id != current_user.id and owner.id != current_user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
+        if member.user_id == current_user.id and owner.id == current_user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Can\'t delete owner')
+        await ActionsRepository(self.session).delete_member(delete_request.user_id, company_id)
