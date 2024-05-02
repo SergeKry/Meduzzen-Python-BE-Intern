@@ -17,27 +17,15 @@ class ActionService:
 
     async def owner_validation(self, company_id: int):
         """Validation for create action. User should be company owner. Func returns company-owner pair"""
-        try:
-            token_user_id, token_email, token_username = decode_access_token(self.token.credentials)
-        except JWTError:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Token invalid')
+        user = await UserService(self.session).get_current_user(self.token)
         company, owner = await CompanyService(self.session, self.token).get_company_details(company_id)
-        if owner.email != token_email:
+        if owner.id != user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
         return company, owner
 
-    async def get_current_user(self):
-        """Get real user id from database here"""
-        try:
-            token_user_id, token_email, token_username = decode_access_token(self.token.credentials)
-        except JWTError:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Token invalid')
-        current_user = await UserService(self.session).user_details_by_email(token_email)
-        return current_user
-
     async def member_validation(self, user_id: int):
         """Check permissions of member for creating a membership request"""
-        user = await self.get_current_user()
+        user = await UserService(self.session).get_current_user(self.token)
         if user_id != user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
         return user
@@ -75,7 +63,7 @@ class ActionService:
     async def update_action(self, action_id, new_status: Status) -> action_schema.ActionResponse:
         """Accept or decline invitations/requests"""
         action = await self.get_action(action_id)
-        user = await self.get_current_user()
+        user = await UserService(self.session).get_current_user(self.token)
         if action.request_type == RequestType.REQUEST and user.id == action.user_id or\
                 action.request_type == RequestType.INVITATION and user.id == action.owner_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
@@ -93,7 +81,7 @@ class ActionService:
     async def delete_action(self, action_id):
         """Delete action if exists"""
         action = await self.get_action(action_id)
-        user = await self.get_current_user()
+        user = await UserService(self.session).get_current_user(self.token)
         if action.request_type == RequestType.REQUEST and user.id != action.user_id or\
                 action.request_type == RequestType.INVITATION and user.id != action.owner_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
@@ -125,7 +113,7 @@ class ActionService:
         members = await ActionsRepository(self.session).get_all_members(company_id)
         if not members:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
-        owner = await self.get_current_user()
+        owner = await UserService(self.session).get_current_user(self.token)
         if owner.id != members[0].user_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
         members_list = [company_schema.Member(username=member.username, role=member.role_name) for member in members]
@@ -136,7 +124,7 @@ class ActionService:
         member = await ActionsRepository(self.session).get_member_by_id(delete_request.user_id, company_id)
         if not member:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Member not found')
-        current_user = await self.get_current_user()
+        current_user = await UserService(self.session).get_current_user(self.token)
         company, owner = await CompanyService(self.session).get_company_details(company_id)
         if member.user_id != current_user.id and owner.id != current_user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
