@@ -20,7 +20,7 @@ class ActionsRepository:
         await self.session.commit()
         return new_action
 
-    async def get_action_duplicate(self, company_id: int, user_id: int, request_type: db_model.RequestType,
+    async def get_action_duplicate(self, company_id: int, user_id: int, request_type: db_model.ActionType,
                                    status: Status):
         query = select(self.action_model)\
             .filter(self.action_model.company_id == company_id)\
@@ -57,7 +57,7 @@ class ActionsRepository:
         await self.session.execute(stmt)
         await self.session.commit()
 
-    async def get_user_actions(self, user_id, request_type: db_model.RequestType):
+    async def get_user_actions(self, user_id, request_type: db_model.ActionType):
         query = select(self.action_model.id, self.company_model.name, self.user_model.username, self.action_model.status)\
             .join(self.company_model, self.action_model.company_id == self.company_model.id)\
             .join(self.user_model, self.user_model.id == self.action_model.user_id)\
@@ -66,7 +66,7 @@ class ActionsRepository:
         query_result = await self.session.execute(query)
         return query_result.all()
 
-    async def get_company_actions(self, company_id: int, request_type: db_model.RequestType):
+    async def get_company_actions(self, company_id: int, request_type: db_model.ActionType):
         query = select(self.action_model.id, self.company_model.name, self.user_model.username,self.action_model.status)\
             .join(self.company_model, self.action_model.company_id == self.company_model.id)\
             .join(self.user_model, self.user_model.id == self.action_model.user_id)\

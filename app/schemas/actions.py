@@ -1,7 +1,7 @@
 from typing import List
 
 from pydantic import BaseModel, Field
-from app.db.company import RequestType, Status
+from app.db.company import ActionType, Status
 
 
 class Action(BaseModel):
@@ -14,7 +14,7 @@ class Action(BaseModel):
 class ActionCreateRequest(BaseModel):
     company_id: int
     user_id: int
-    request_type: RequestType
+    request_type: ActionType
 
 
 class ActionResponse(BaseModel):
@@ -25,7 +25,7 @@ class ActionResponse(BaseModel):
 
 
 class ActionListResponse(BaseModel):
-    type: RequestType
+    type: ActionType
     actions: List[ActionResponse]
 
 

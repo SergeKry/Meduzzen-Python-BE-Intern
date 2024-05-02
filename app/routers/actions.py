@@ -4,7 +4,7 @@ from app.routers.routers import db_dependency, token_dependency
 from app.schemas import actions as act_schema
 from app.schemas import companies as comp_schema
 from app.services.actions import ActionService as ActServ
-from app.db.company import RequestType, Status
+from app.db.company import ActionType, Status
 
 action_router = APIRouter()
 
@@ -18,14 +18,14 @@ async def create_action(request: act_schema.ActionCreateRequest, session: db_dep
 
 @action_router.get("/action/my_invitations", response_model=act_schema.ActionListResponse, tags=["Actions"])
 async def get_users_invitations(session: db_dependency, token: token_dependency):
-    action_type = RequestType.INVITATION
+    action_type = ActionType.INVITATION
     actions = await ActServ(session, token).get_actions(action_type)
     return act_schema.ActionListResponse(type=action_type, actions=actions)
 
 
 @action_router.get("/action/my_requests", response_model=act_schema.ActionListResponse, tags=["Actions"])
 async def get_users_requests(session: db_dependency, token: token_dependency):
-    action_type = RequestType.REQUEST
+    action_type = ActionType.REQUEST
     actions = await ActServ(session, token).get_actions(action_type)
     return act_schema.ActionListResponse(type=action_type, actions=actions)
 
@@ -33,7 +33,7 @@ async def get_users_requests(session: db_dependency, token: token_dependency):
 @action_router.get("/action/company_invites/{company_id}", response_model=act_schema.ActionListResponse,
                    tags=["Actions"])
 async def get_company_invitations(company_id: int, session: db_dependency, token: token_dependency):
-    action_type = RequestType.INVITATION
+    action_type = ActionType.INVITATION
     actions = await ActServ(session, token).get_company_actions(company_id, action_type)
     return act_schema.ActionListResponse(type=action_type, actions=actions)
 
@@ -41,7 +41,7 @@ async def get_company_invitations(company_id: int, session: db_dependency, token
 @action_router.get("/action/company_requests/{company_id}", response_model=act_schema.ActionListResponse,
                    tags=["Actions"])
 async def get_company_requests(company_id: int, session: db_dependency, token: token_dependency):
-    action_type = RequestType.REQUEST
+    action_type = ActionType.REQUEST
     actions = await ActServ(session, token).get_company_actions(company_id, action_type)
     return act_schema.ActionListResponse(type=action_type, actions=actions)
 
