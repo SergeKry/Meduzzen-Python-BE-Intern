@@ -15,6 +15,7 @@ user_dependency = Annotated[user_schema.User, Depends(AuthService().get_current_
 token_auth_scheme = HTTPBearer()
 token_dependency = Annotated[HTTPAuthorizationCredentials, Depends(token_auth_scheme)]
 
+
 @health_router.get("/")
 async def healthcheck():
     return {"status_code": "200", "detail": "ok", "result": "working"}

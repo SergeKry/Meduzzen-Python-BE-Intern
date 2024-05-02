@@ -69,6 +69,14 @@ class MemberDeleteRequest(BaseModel):
     user_id: int
 
 
+class MemberDeleteResponse(BaseModel):
+    message: str = "Member deleted"
+
+
 class MemberRoleUpdateRequest(BaseModel):
     user_id: int
     role: RoleName
+
+
+class MemberRoleUpdateResponse(BaseModel):
+    message: str = 'Member\'s role updated'

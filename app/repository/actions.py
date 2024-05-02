@@ -80,7 +80,7 @@ class ActionsRepository:
         self.session.add(new_member)
         await self.session.commit()
 
-    async def get_member_by_id(self, user_id: int, company_id: int):
+    async def get_member_by_user_id(self, user_id: int, company_id: int):
         query = select(self.member_model).filter(self.member_model.user_id == user_id)\
             .filter(self.member_model.company_id == company_id)
         query_result = await self.session.execute(query)
@@ -90,6 +90,14 @@ class ActionsRepository:
         query = select(self.member_model.company_id, self.member_model.user_id,
                        self.user_model.username, self.role_model.role_name).join(self.user_model).join(self.role_model)\
                     .filter(self.member_model.company_id == company_id)
+        query_result = await self.session.execute(query)
+        return query_result.all()
+
+    async def get_all_admins(self, company_id: int):
+        query = select(self.member_model.company_id, self.member_model.user_id,
+                       self.user_model.username, self.role_model.role_name).join(self.user_model).join(self.role_model)\
+                    .filter(self.member_model.company_id == company_id)\
+                    .filter(self.role_model.role_name == RoleName.ADMIN)
         query_result = await self.session.execute(query)
         return query_result.all()
 

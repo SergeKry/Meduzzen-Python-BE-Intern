@@ -34,7 +34,7 @@ class ActionService:
 
     async def check_existing_member(self, company_id: int, user_id: int):
         """Check to avoid member duplicates inside a company"""
-        member = await ActionsRepository(self.session).get_member_by_id(user_id, company_id)
+        member = await ActionsRepository(self.session).get_member_by_user_id(user_id, company_id)
         if member:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='User already in the company')
 
@@ -122,20 +122,19 @@ class ActionService:
 
     async def get_all_admins(self, company_id) -> company_schema.MemberList:
         """Get all admins of a company. Available only for company members"""
-        members = await ActionsRepository(self.session).get_all_members(company_id)
-        if not members:
+        admins = await ActionsRepository(self.session).get_all_admins(company_id)
+        if not admins:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
         current_user = await UserService(self.session).get_current_user(self.token)
-        member = await ActionsRepository(self.session).get_member_by_id(current_user.id, company_id)
+        member = await ActionsRepository(self.session).get_member_by_user_id(current_user.id, company_id)
         if not member:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
-        admins = [company_schema.Member(username=member.username, role=member.role_name) for member in members\
-                  if member.role_name == RoleName.ADMIN]
-        return company_schema.MemberList(members=admins)
+        admins_list = [company_schema.Member(username=admin.username, role=admin.role_name) for admin in admins]
+        return company_schema.MemberList(members=admins_list)
 
     async def remove_member(self, delete_request, company_id: int) -> None:
         """Remove member. Member can remove himself OR owner can remove a member. Owner can't be removed at all"""
-        member = await ActionsRepository(self.session).get_member_by_id(delete_request.user_id, company_id)
+        member = await ActionsRepository(self.session).get_member_by_user_id(delete_request.user_id, company_id)
         if not member:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Member not found')
         current_user = await UserService(self.session).get_current_user(self.token)
@@ -151,6 +150,8 @@ class ActionService:
         if request_body.role == RoleName.OWNER:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Can\'t change the owner')
         company, owner, current_user = await self.owner_validation(company_id)
+        if not await ActionsRepository(self.session).get_member_by_user_id(request_body.user_id, company_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Member not found')
         if owner.id == request_body.user_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Can\'t change owner\'s role')
         role = await ActionsRepository(self.session).get_role_by_rolename(request_body.role)

@@ -31,3 +31,7 @@ class ActionListResponse(BaseModel):
 
 class ActionUpdateRequest(BaseModel):
     status: Status
+
+
+class ActionDeleteResponse(BaseModel):
+    message: str
