@@ -12,6 +12,7 @@ import app.schemas.companies as company_schema
 from app.db.company import ActionType, Status, RoleName
 
 
+
 class ActionService:
     def __init__(self, session, token):
         self.session = session
