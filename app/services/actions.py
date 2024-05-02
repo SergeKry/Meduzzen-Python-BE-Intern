@@ -7,7 +7,7 @@ from app.services.users import UserService
 from app.repository.actions import ActionsRepository
 import app.schemas.actions as action_schema
 import app.schemas.companies as company_schema
-from app.db.company import RequestType, Status, RoleName
+from app.db.company import ActionType, Status, RoleName
 
 
 class ActionService:
@@ -41,7 +41,7 @@ class ActionService:
         company_id = request_body.company_id
         user_id = request_body.user_id
         await self.check_existing_member(company_id, user_id)
-        if request_body.request_type == RequestType.INVITATION:
+        if request_body.request_type == ActionType.INVITATION:
             company, owner, user = await self.owner_validation(company_id)
         else:
             user = await self.member_validation(user_id)
@@ -63,8 +63,8 @@ class ActionService:
         """Accept or decline invitations/requests"""
         action = await self.get_action(action_id)
         user = await UserService(self.session).get_current_user(self.token)
-        if action.request_type == RequestType.REQUEST and user.id == action.user_id or\
-                action.request_type == RequestType.INVITATION and user.id == action.owner_id:
+        if action.request_type == ActionType.REQUEST and user.id == action.user_id or\
+                action.request_type == ActionType.INVITATION and user.id == action.owner_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
         if action.status != Status.PENDING:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'{action.request_type.value} is closed')
@@ -81,13 +81,13 @@ class ActionService:
         """Delete action if exists"""
         action = await self.get_action(action_id)
         user = await UserService(self.session).get_current_user(self.token)
-        if action.request_type == RequestType.REQUEST and user.id != action.user_id or\
-                action.request_type == RequestType.INVITATION and user.id != action.owner_id:
+        if action.request_type == ActionType.REQUEST and user.id != action.user_id or\
+                action.request_type == ActionType.INVITATION and user.id != action.owner_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
         await ActionsRepository(self.session).delete_action(action_id)
         return action.request_type
 
-    async def get_actions(self, action_type: RequestType):
+    async def get_actions(self, action_type: ActionType):
         """Get all actions for current user"""
         user = await UserService(self.session).get_current_user(self.token)
         actions = await ActionsRepository(self.session).get_user_actions(user.id, action_type)

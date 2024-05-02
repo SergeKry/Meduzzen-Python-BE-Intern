@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from app.db.database import BaseModel
 
 
-class RequestType(enum.Enum):
+class ActionType(enum.Enum):
     INVITATION = 'invitation'
     REQUEST = 'request'
 
@@ -37,7 +37,7 @@ class Action(BaseModel):
 
     company_id = Column(Integer, ForeignKey('companies.id', ondelete='CASCADE'), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    request_type = Column(SQLEnum(RequestType), nullable=False)
+    request_type = Column(SQLEnum(ActionType), nullable=False)
     status = Column(SQLEnum(Status), nullable=False)
 
 
