@@ -1,9 +1,11 @@
 from fastapi import HTTPException
+from jose import JWTError
 from starlette import status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.utils import utils
 from app.repository.users import UserRepository
 from app.schemas import users as user_schema
+from app.utils.utils import decode_access_token
 import app.db.user as db_model
 
 
@@ -13,12 +15,26 @@ class UserService:
         self.session = session
         self.user_repository = UserRepository(self.session)
 
+    async def get_current_user(self, token):
+        """Get real user id from database here"""
+        try:
+            token_user_id, token_email, token_username = decode_access_token(token.credentials)
+        except JWTError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Token invalid')
+        current_user = await UserService(self.session).user_details_by_email(token_email)
+        return current_user
+
+
     async def user_details_by_id(self, user_id: int):
         user = await self.user_repository.get_one_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
         return user
 
     async def user_details_by_email(self, email: str):
         user = await self.user_repository.get_one_by_email(email)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
         return user
 
     async def get_all_users(self):

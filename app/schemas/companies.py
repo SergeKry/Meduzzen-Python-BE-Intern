@@ -53,3 +53,16 @@ class CompanyCreateResponse(BaseModel):
     class Config:
         orm_mode = True
         from_attributes = True
+
+
+class Member(BaseModel):
+    username: str
+    role: str
+
+
+class MemberList(BaseModel):
+    members: List[Member]
+
+
+class MemberDeleteRequest(BaseModel):
+    user_id: int

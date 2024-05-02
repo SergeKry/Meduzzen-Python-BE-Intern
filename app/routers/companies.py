@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from starlette import status
 from app.schemas import companies as schema
-from app.routers.routers import db_dependency, user_dependency
+from app.routers.routers import db_dependency, user_dependency, token_dependency
 from app.services.companies import CompanyService as Service
 
 token_auth_scheme = HTTPBearer()
@@ -26,7 +26,7 @@ async def get_all_companies(session: db_dependency, user: user_dependency):
 @company_router.get("/{company_id}")
 async def get_company(company_id: int,
                       session: db_dependency,
-                      token: HTTPAuthorizationCredentials = Depends(token_auth_scheme)) -> schema.CompanyDetails:
+                      token: token_dependency) -> schema.CompanyDetails:
     company = await Service(session, token).company_details_by_id(company_id)
     return company
 
@@ -34,7 +34,7 @@ async def get_company(company_id: int,
 @company_router.patch("/{company_id}")
 async def update_company(company_id: int, request_body: schema.CompanyUpdateRequest,
                          session: db_dependency,
-                         token: HTTPAuthorizationCredentials = Depends(token_auth_scheme)) -> schema.CompanyDetails:
+                         token: token_dependency) -> schema.CompanyDetails:
     await Service(session, token).update_company(company_id, request_body)
     return await Service(session, token).company_details_by_id(company_id)
 
@@ -42,6 +42,6 @@ async def update_company(company_id: int, request_body: schema.CompanyUpdateRequ
 @company_router.delete("/{company_id}")
 async def delete_company(company_id: int,
                          session: db_dependency,
-                         token: HTTPAuthorizationCredentials = Depends(token_auth_scheme)) -> str:
+                         token: token_dependency) -> str:
     await Service(session, token).delete_company(company_id)
     return 'Company deleted'

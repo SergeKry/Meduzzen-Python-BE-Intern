@@ -29,20 +29,16 @@ def upgrade() -> None:
     )
     op.bulk_insert(roles,
                    [{
-                        'role_name': 'admin',
+                        'role_name': 'superadmin',
                         'id': 1,
                         'created_at': datetime.datetime.now(),
                         'updated_at': datetime.datetime.now()},
                     {
-                        'role_name': 'owner',
+                        'role_name': 'user',
                         'id': 2,
                         'created_at': datetime.datetime.now(),
                         'updated_at': datetime.datetime.now()
-                        },
-                       {'role_name': 'user',
-                        'id': 3,
-                        'created_at': datetime.datetime.now(),
-                        'updated_at': datetime.datetime.now()}])
+                        }])
     op.create_table('users',
     sa.Column('username', sa.String(length=20), nullable=False),
     sa.Column('email', sa.String(length=320), nullable=False),
