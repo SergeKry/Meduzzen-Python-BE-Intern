@@ -1,13 +1,11 @@
 from fastapi import HTTPException
-from jose import JWTError
 from starlette import status
 from app.services.companies import CompanyService
 from app.services.users import UserService
 from app.repository.actions import ActionsRepository
 import app.schemas.actions as action_schema
 import app.schemas.companies as company_schema
-from app.utils.utils import decode_access_token
-from app.db.company import RequestType, Status, RoleName
+from app.db.company import RequestType, Status
 
 
 class ActionService:
