@@ -2,6 +2,8 @@ from urllib import request
 
 from fastapi import HTTPException
 from starlette import status
+
+from app.db.user import Role
 from app.services.companies import CompanyService
 from app.services.users import UserService
 from app.repository.actions import ActionsRepository
@@ -117,6 +119,19 @@ class ActionService:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
         members_list = [company_schema.Member(username=member.username, role=member.role_name) for member in members]
         return company_schema.MemberList(members=members_list)
+
+    async def get_all_admins(self, company_id) -> company_schema.MemberList:
+        """Get all admins of a company. Available only for company members"""
+        members = await ActionsRepository(self.session).get_all_members(company_id)
+        if not members:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+        current_user = await UserService(self.session).get_current_user(self.token)
+        member = await ActionsRepository(self.session).get_member_by_id(current_user.id, company_id)
+        if not member:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
+        admins = [company_schema.Member(username=member.username, role=member.role_name) for member in members\
+                  if member.role_name == RoleName.ADMIN]
+        return company_schema.MemberList(members=admins)
 
     async def remove_member(self, delete_request, company_id: int) -> None:
         """Remove member. Member can remove himself OR owner can remove a member. Owner can't be removed at all"""

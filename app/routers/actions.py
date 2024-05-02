@@ -68,6 +68,12 @@ async def get_company_members(company_id: int, session: db_dependency, token: to
     return members
 
 
+@action_router.get("/admins/{company_id}", response_model=comp_schema.MemberList, tags=['Members'])
+async def get_company_admins(company_id: int, session: db_dependency, token: token_dependency):
+    admins = await ActServ(session,token).get_all_admins(company_id)
+    return admins
+
+
 @action_router.patch("/members/{company_id}", tags=['Members'])
 async def change_user_role(request_body: comp_schema.MemberRoleUpdateRequest,
                            company_id: int, session: db_dependency, token: token_dependency):
