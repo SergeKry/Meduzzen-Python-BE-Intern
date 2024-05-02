@@ -24,7 +24,6 @@ class UserService:
         current_user = await UserService(self.session).user_details_by_email(token_email)
         return current_user
 
-
     async def user_details_by_id(self, user_id: int):
         user = await self.user_repository.get_one_by_id(user_id)
         if not user:

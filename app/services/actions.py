@@ -1,3 +1,5 @@
+from urllib import request
+
 from fastapi import HTTPException
 from starlette import status
 from app.services.companies import CompanyService
@@ -5,7 +7,7 @@ from app.services.users import UserService
 from app.repository.actions import ActionsRepository
 import app.schemas.actions as action_schema
 import app.schemas.companies as company_schema
-from app.db.company import RequestType, Status
+from app.db.company import RequestType, Status, RoleName
 
 
 class ActionService:
@@ -19,7 +21,7 @@ class ActionService:
         company, owner = await CompanyService(self.session, self.token).get_company_details(company_id)
         if owner.id != user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Wrong permissions')
-        return company, owner
+        return company, owner, user
 
     async def member_validation(self, user_id: int):
         """Check permissions of member for creating a membership request"""
@@ -40,8 +42,7 @@ class ActionService:
         user_id = request_body.user_id
         await self.check_existing_member(company_id, user_id)
         if request_body.request_type == RequestType.INVITATION:
-            company, owner = await self.owner_validation(company_id)
-            user = await UserService(self.session).user_details_by_id(user_id)
+            company, owner, user = await self.owner_validation(company_id)
         else:
             user = await self.member_validation(user_id)
             company, owner = await CompanyService(self.session).get_company_details(company_id)
@@ -88,7 +89,7 @@ class ActionService:
 
     async def get_actions(self, action_type: RequestType):
         """Get all actions for current user"""
-        user = await self.get_current_user()
+        user = await UserService(self.session).get_current_user(self.token)
         actions = await ActionsRepository(self.session).get_user_actions(user.id, action_type)
         actions_list = [action_schema.ActionResponse(action_id=action.id,
                                                      company_name=action.name,
@@ -117,7 +118,7 @@ class ActionService:
         members_list = [company_schema.Member(username=member.username, role=member.role_name) for member in members]
         return company_schema.MemberList(members=members_list)
 
-    async def remove_member(self, delete_request, company_id: int):
+    async def remove_member(self, delete_request, company_id: int) -> None:
         """Remove member. Member can remove himself OR owner can remove a member. Owner can't be removed at all"""
         member = await ActionsRepository(self.session).get_member_by_id(delete_request.user_id, company_id)
         if not member:
@@ -129,3 +130,13 @@ class ActionService:
         if member.user_id == current_user.id and owner.id == current_user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Can\'t delete owner')
         await ActionsRepository(self.session).delete_member(delete_request.user_id, company_id)
+
+    async def update_role(self, company_id: int, request_body: company_schema.MemberRoleUpdateRequest):
+        """available only for owner. Owners role cant be updated"""
+        if request_body.role == RoleName.OWNER:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Can\'t change the owner')
+        company, owner, current_user = await self.owner_validation(company_id)
+        if owner.id == request_body.user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Can\'t change owner\'s role')
+        role = await ActionsRepository(self.session).get_role_by_rolename(request_body.role)
+        await ActionsRepository(self.session).update_member(company_id, request_body.user_id, role.id)

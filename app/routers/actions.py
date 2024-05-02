@@ -68,6 +68,13 @@ async def get_company_members(company_id: int, session: db_dependency, token: to
     return members
 
 
+@action_router.patch("/members/{company_id}", tags=['Members'])
+async def change_user_role(request_body: comp_schema.MemberRoleUpdateRequest,
+                           company_id: int, session: db_dependency, token: token_dependency):
+    await ActServ(session, token).update_role(company_id, request_body)
+    return {"message": "Role updated"}
+
+
 @action_router.delete("/members/{company_id}", tags=['Members'])
 async def remove_member(delete_request: comp_schema.MemberDeleteRequest, company_id: int,
                         session: db_dependency, token: token_dependency):

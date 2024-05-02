@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List
 from pydantic import BaseModel, Field
+from app.db.company import RoleName
 
 
 class Company(BaseModel):
@@ -66,3 +67,8 @@ class MemberList(BaseModel):
 
 class MemberDeleteRequest(BaseModel):
     user_id: int
+
+
+class MemberRoleUpdateRequest(BaseModel):
+    user_id: int
+    role: RoleName
