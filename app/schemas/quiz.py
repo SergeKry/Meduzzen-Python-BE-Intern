@@ -1,0 +1,38 @@
+from typing import List
+
+from pydantic import BaseModel, Field, conlist
+
+
+class Question(BaseModel):
+    question: str = Field(max_length=255)
+    correct_answer: str
+    wrong_answer: List[str]
+
+
+class QuizAddRequest(BaseModel):
+    company_id: int = Field(gt=0)
+    name: str = Field(max_length=100)
+    description: str = Field(max_length=255)
+    frequency: int = Field(gt=0)
+    questions: conlist(Question, min_length=2)
+
+
+class QuizResponse(BaseModel):
+    name: str = Field(max_length=100)
+    description: str = Field(max_length=255)
+    frequency: int = Field(gt=0)
+    questions: conlist(Question, min_length=2)
+
+
+class QuizUpdateRequest(QuizResponse):
+    pass
+
+
+class QuizListRequest(BaseModel):
+    company_id: int = Field(gt=0)
+
+
+class QuizListResponse(BaseModel):
+    company_name: str
+    quizz_list: List[QuizResponse]
+
