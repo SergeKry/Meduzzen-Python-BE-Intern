@@ -59,7 +59,7 @@ async def accept_decline_action(action_id: int, request_body: act_schema.ActionU
 @action_router.delete("/action/{action_id}", tags=["Actions"])
 async def delete_action(action_id: int, session: db_dependency, token: token_dependency):
     action_type = await ActServ(session, token).delete_action(action_id)
-    return {"message": f"{action_type.value} deleted"}
+    return act_schema.ActionDeleteResponse(status=status.HTTP_200_OK , message=f"{action_type.value} deleted")
 
 
 @action_router.get("/members/{company_id}", response_model=comp_schema.MemberList, tags=['Members'])
@@ -68,8 +68,21 @@ async def get_company_members(company_id: int, session: db_dependency, token: to
     return members
 
 
+@action_router.get("/admins/{company_id}", response_model=comp_schema.MemberList, tags=['Members'])
+async def get_company_admins(company_id: int, session: db_dependency, token: token_dependency):
+    admins = await ActServ(session,token).get_all_admins(company_id)
+    return admins
+
+
+@action_router.patch("/members/{company_id}", tags=['Members'])
+async def change_user_role(request_body: comp_schema.MemberRoleUpdateRequest,
+                           company_id: int, session: db_dependency, token: token_dependency):
+    await ActServ(session, token).update_role(company_id, request_body)
+    return comp_schema.MemberRoleUpdateResponse(status=status.HTTP_200_OK)
+
+
 @action_router.delete("/members/{company_id}", tags=['Members'])
 async def remove_member(delete_request: comp_schema.MemberDeleteRequest, company_id: int,
                         session: db_dependency, token: token_dependency):
     await ActServ(session, token).remove_member(delete_request, company_id)
-    return {"message": "User deleted"}
+    return comp_schema.MemberDeleteResponse(status=status.HTTP_200_OK)

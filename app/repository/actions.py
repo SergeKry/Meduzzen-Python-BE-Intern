@@ -2,7 +2,7 @@ from sqlalchemy import select, delete, update
 import app.db.company as db_model
 import app.db.user as user_model
 from app.schemas import actions as action_schema
-from app.db.company import Status
+from app.db.company import Status, RoleName
 
 
 class ActionsRepository:
@@ -80,7 +80,7 @@ class ActionsRepository:
         self.session.add(new_member)
         await self.session.commit()
 
-    async def get_member_by_id(self, user_id: int, company_id: int):
+    async def get_member_by_user_id(self, user_id: int, company_id: int):
         query = select(self.member_model).filter(self.member_model.user_id == user_id)\
             .filter(self.member_model.company_id == company_id)
         query_result = await self.session.execute(query)
@@ -93,8 +93,27 @@ class ActionsRepository:
         query_result = await self.session.execute(query)
         return query_result.all()
 
+    async def get_all_admins(self, company_id: int):
+        query = select(self.member_model.company_id, self.member_model.user_id,
+                       self.user_model.username, self.role_model.role_name).join(self.user_model).join(self.role_model)\
+                    .filter(self.member_model.company_id == company_id)\
+                    .filter(self.role_model.role_name == RoleName.ADMIN)
+        query_result = await self.session.execute(query)
+        return query_result.all()
+
+    async def update_member(self, company_id: int, user_id: int, role_id: int = 3) -> None:
+        stmt = update(self.member_model).where(self.member_model.company_id == company_id)\
+            .where(self.member_model.user_id == user_id).values(role_id=role_id)
+        await self.session.execute(stmt)
+        await self.session.commit()
+
     async def delete_member(self, user_id: int, company_id: int):
         stmt = delete(self.member_model).where(self.member_model.user_id == user_id)\
             .where(self.member_model.company_id == company_id)
         await self.session.execute(stmt)
         await self.session.commit()
+
+    async def get_role_by_rolename(self, role_name: RoleName):
+        query = select(self.role_model).where(role_name == self.role_model.role_name)
+        query_result = await self.session.execute(query)
+        return query_result.scalar()
