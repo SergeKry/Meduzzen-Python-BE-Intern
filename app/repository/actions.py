@@ -1,4 +1,6 @@
+from fastapi import Depends
 from sqlalchemy import select, delete, update
+from sqlalchemy.ext.asyncio import AsyncSession
 import app.db.company as db_model
 import app.db.user as user_model
 from app.schemas import actions as action_schema
@@ -6,7 +8,7 @@ from app.db.company import Status, RoleName
 
 
 class ActionsRepository:
-    def __init__(self, session):
+    def __init__(self, session: AsyncSession):
         self.session = session
         self.action_model = db_model.Action
         self.company_model = db_model.Company
@@ -81,10 +83,12 @@ class ActionsRepository:
         await self.session.commit()
 
     async def get_member_by_user_id(self, user_id: int, company_id: int):
-        query = select(self.member_model).filter(self.member_model.user_id == user_id)\
+        query = select(self.member_model.user_id, self.member_model.company_id, self.role_model.role_name)\
+            .join(self.role_model, self.role_model.id == self.member_model.role_id)\
+            .filter(self.member_model.user_id == user_id)\
             .filter(self.member_model.company_id == company_id)
         query_result = await self.session.execute(query)
-        return query_result.scalar()
+        return query_result.first()
 
     async def get_all_members(self, company_id: int):
         query = select(self.member_model.company_id, self.member_model.user_id,

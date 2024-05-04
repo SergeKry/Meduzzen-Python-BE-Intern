@@ -1,12 +1,11 @@
 from typing import List
-
 from pydantic import BaseModel, Field, conlist
 
 
 class Question(BaseModel):
     question: str = Field(max_length=255)
-    correct_answer: str
-    wrong_answer: List[str]
+    correct_answer: conlist(str, max_length=1)
+    wrong_answer: conlist(str)
 
 
 class QuizAddRequest(BaseModel):
@@ -18,14 +17,19 @@ class QuizAddRequest(BaseModel):
 
 
 class QuizResponse(BaseModel):
+    id: int = Field(gt=0)
     name: str = Field(max_length=100)
     description: str = Field(max_length=255)
     frequency: int = Field(gt=0)
-    questions: conlist(Question, min_length=2)
+
+
+class QuizDetailResponse(QuizResponse):
+    quiz_id: int
+    questions: conlist(Question)
 
 
 class QuizUpdateRequest(QuizResponse):
-    pass
+    questions: conlist(Question)
 
 
 class QuizListRequest(BaseModel):
@@ -33,6 +37,6 @@ class QuizListRequest(BaseModel):
 
 
 class QuizListResponse(BaseModel):
-    company_name: str
-    quizz_list: List[QuizResponse]
+    company_id: int
+    quiz_list: List[QuizResponse]
 

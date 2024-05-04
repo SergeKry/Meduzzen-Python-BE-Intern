@@ -11,6 +11,7 @@ from app.config import settings
 from app.db.database import Base
 from app.db import company
 from app.db import user
+from app.db import quiz
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

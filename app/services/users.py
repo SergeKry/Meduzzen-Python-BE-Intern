@@ -15,7 +15,7 @@ class UserService:
         self.session = session
         self.user_repository = UserRepository(self.session)
 
-    async def get_current_user(self, token):
+    async def get_current_user(self, token) -> db_model.User:
         """Get real user id from database here"""
         try:
             token_user_id, token_email, token_username = decode_access_token(token.credentials)
@@ -30,7 +30,7 @@ class UserService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
         return user
 
-    async def user_details_by_email(self, email: str):
+    async def user_details_by_email(self, email: str) -> db_model.User:
         user = await self.user_repository.get_one_by_email(email)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')

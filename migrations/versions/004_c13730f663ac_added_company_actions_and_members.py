@@ -30,7 +30,7 @@ def upgrade() -> None:
     op.create_table('actions',
     sa.Column('company_id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('request_type', sa.Enum('INVITATION', 'REQUEST', name='requesttype'), nullable=False),
+    sa.Column('request_type', sa.Enum('INVITATION', 'REQUEST', name='actiontype'), nullable=False),
     sa.Column('status', sa.Enum('PENDING', 'ACCEPTED', 'DECLINED', name='status'), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
