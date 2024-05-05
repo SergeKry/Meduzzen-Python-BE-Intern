@@ -1,4 +1,4 @@
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import quiz as quiz_model
 from app.schemas import quiz as quiz_schema
@@ -42,16 +42,42 @@ class QuizRepository:
         query_result = await self.session.execute(query)
         return query_result.scalars().all()
 
-    async def get_quiz_answers(self, question_id, correct: bool = True):
-        query = select(quiz_model.QuizAnswers.answer).filter(quiz_model.QuizAnswers.question_id == question_id)\
-            .filter(quiz_model.QuizAnswers.is_correct==correct)
+    async def get_quiz_answers(self, question_id: int):
+        query = select(quiz_model.QuizAnswers.id, quiz_model.QuizAnswers.answer, quiz_model.QuizAnswers.is_correct)\
+            .filter(quiz_model.QuizAnswers.question_id == question_id)
         query_result = await self.session.execute(query)
-        return query_result.scalars().all()
+        return query_result.all()
 
     async def get_all_quizzes(self, company_id: int):
         query = select(quiz_model.Quiz).where(quiz_model.Quiz.company_id == company_id)
         query_result = await self.session.execute(query)
         return query_result.scalars().all()
+
+    async def update_quiz(self, quiz_id: int, quiz_details: dict):
+        stmt = update(quiz_model.Quiz).where(quiz_model.Quiz.id == quiz_id).values(**quiz_details)
+        await self.session.execute(stmt)
+        await self.session.commit()
+
+    async def add_question(self, question_details: quiz_schema.QuestionAddRequest):
+        question = quiz_model.QuizQuestion(quiz_id=question_details.quiz_id, question=question_details.question)
+        correct_answer = quiz_model.QuizAnswers(answer=question_details.correct_answer[0],
+                                                is_correct=True, question=question)
+        wrong_answers = [quiz_model.QuizAnswers(answer=answer, is_correct=False,
+                                                question=question) for answer in question_details.wrong_answer]
+        self.session.add(question)
+        self.session.add(correct_answer)
+        self.session.add_all(wrong_answers)
+        await self.session.commit()
+
+    async def get_question_by_id(self, question_id):
+        query = select(quiz_model.QuizQuestion, quiz_model.Quiz).join(quiz_model.Quiz).where(quiz_model.QuizQuestion.id == question_id)
+        query_result = await self.session.execute(query)
+        return query_result.first()
+
+    async def delete_question(self, question_id):
+        stmt = delete(quiz_model.QuizQuestion).where(quiz_model.QuizQuestion.id == question_id)
+        await self.session.execute(stmt)
+        await self.session.commit()
 
     async def delete_quiz(self, quiz_id: int):
         stmt = delete(self.quiz_model).where(self.quiz_model.id == quiz_id)
