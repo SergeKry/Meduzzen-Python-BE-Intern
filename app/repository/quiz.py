@@ -10,25 +10,21 @@ class QuizRepository:
         self.quiz_model = quiz_model.Quiz
 
     async def create_quiz(self, quiz_details: quiz_schema.QuizAddRequest) -> quiz_model.Quiz:
-        quiz_dict = {'name': quiz_details.name, 'description': quiz_details.description,
-                     'frequency': quiz_details.frequency, 'company_id': quiz_details.company_id}
+        quiz_dict = quiz_details.dict()
+        quiz_dict.pop('questions')
         new_quiz = quiz_model.Quiz(**quiz_dict)
         questions = []
-        correct_answers = []
-        wrong_answers = []
+        answers = []
         for item in quiz_details.questions:
             question = (quiz_model.QuizQuestion(question=item.question, quiz=new_quiz))
             questions.append(question)
-            correct_answer = quiz_model.QuizAnswers(answer=item.correct_answer[0], is_correct=True, question=question)
-            correct_answers.append(correct_answer)
-            wrong_answer_list = [quiz_model.QuizAnswers(answer=answer, is_correct=False,
-                                                        question=question) for answer in item.wrong_answer]
-            for answer in wrong_answer_list:
-                wrong_answers.append(answer)
+            correct_answers = [answers.append(quiz_model.QuizAnswers(answer=answer, is_correct=True,
+                                                     question=question)) for answer in item.correct_answer]
+            wrong_answers = [answers.append(quiz_model.QuizAnswers(answer=answer, is_correct=False,
+                                                        question=question)) for answer in item.wrong_answer]
         self.session.add(new_quiz)
         self.session.add_all(questions)
-        self.session.add_all(correct_answers)
-        self.session.add_all(wrong_answers)
+        self.session.add_all(answers)
         await self.session.commit()
         return new_quiz
 

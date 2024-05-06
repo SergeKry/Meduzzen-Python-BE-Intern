@@ -10,7 +10,7 @@ class AnswerDetails(BaseModel):
 
 class Question(BaseModel):
     question: str = Field(max_length=255)
-    correct_answer: conlist(str, max_length=1)
+    correct_answer: conlist(str)
     wrong_answer: conlist(str)
 
 
